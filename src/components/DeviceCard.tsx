@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, ChevronRight, Wifi, WifiOff } from 'lucide-react';
+import { Settings, ChevronRight, Wifi, WifiOff, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SmartPlug } from '@/types/device';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +13,8 @@ import {
   PowerDisplay,
 } from './SensorDisplay';
 import { Badge } from '@/components/ui/badge';
+import { ref, update } from 'firebase/database';
+import { rtdb } from '@/lib/firebase';
 
 interface DeviceCardProps {
   device: SmartPlug;
@@ -22,6 +24,10 @@ interface DeviceCardProps {
 
 export function DeviceCard({ device, onToggle, onSelect }: DeviceCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+
+  // 🔹 Rename state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState(device.name);
 
   // ✅ SAFETY NORMALIZATION (CRITICAL)
   const sensorData = device.sensorData ?? {
@@ -41,6 +47,21 @@ export function DeviceCard({ device, onToggle, onSelect }: DeviceCardProps) {
   const override = device.override ?? {
     active: false,
     permanent: false,
+  };
+
+  // 🔹 Rename handler
+  const handleRename = async () => {
+    if (!newName.trim() || newName === device.name) {
+      setIsEditingName(false);
+      setNewName(device.name);
+      return;
+    }
+
+    await update(ref(rtdb, `devices/${device.id}`), {
+      name: newName,
+    });
+
+    setIsEditingName(false);
   };
 
   return (
@@ -65,8 +86,31 @@ export function DeviceCard({ device, onToggle, onSelect }: DeviceCardProps) {
             >
               <PowerIndicator isOn={device.isOn} size="lg" />
             </div>
-            <div>
-              <h3 className="font-semibold text-foreground">{device.name}</h3>
+
+            <div onClick={(e) => e.stopPropagation()}>
+              {isEditingName ? (
+                <input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onBlur={handleRename}
+                  onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+                  className="border rounded px-2 py-1 text-sm w-full"
+                  autoFocus
+                />
+              ) : (
+                <div className="flex items-center gap-1">
+                  <h3 className="font-semibold text-foreground">
+                    {device.name}
+                  </h3>
+                  <button
+                    onClick={() => setIsEditingName(true)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
               <p className="text-sm text-muted-foreground">
                 {device.location}
               </p>
