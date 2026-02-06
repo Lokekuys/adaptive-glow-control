@@ -72,11 +72,42 @@ const mockDevices: SmartPlug[] = [
   createMockDevice("plug-002", "Bedroom Fan", "Bedroom", "inductive"),
 ];
 
+/* ---------- MOCK POWER DATA ---------- */
+
+const generateDailyData = () => {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const today = new Date();
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - (6 - i));
+    return {
+      date: days[date.getDay()],
+      kwh: Math.round((Math.random() * 8 + 2) * 100) / 100,
+      peakWatts: Math.round(Math.random() * 800 + 200),
+    };
+  });
+};
+
+const generateMonthlyData = () => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const currentMonth = new Date().getMonth();
+  return months.slice(0, currentMonth + 1).map((month) => {
+    const totalKwh = Math.round((Math.random() * 150 + 50) * 10) / 10;
+    return {
+      month,
+      totalKwh,
+      avgKwh: Math.round((totalKwh / 30) * 100) / 100,
+    };
+  });
+};
+
 /* ---------- HOOK ---------- */
 
 export function useDevices() {
   const [devices, setDevices] = useState<SmartPlug[] | null>(null);
   const [dailyUsage] = useState<DailyUsage[]>([]);
+  const [dailyPowerData] = useState(generateDailyData);
+  const [monthlyPowerData] = useState(generateMonthlyData);
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
     espNowConnected: true,
     wifiConnected: true,
@@ -224,6 +255,8 @@ export function useDevices() {
   return {
     devices,
     dailyUsage,
+    dailyPowerData,
+    monthlyPowerData,
     systemStatus,
     toggleDevice,
     setBrightness,
