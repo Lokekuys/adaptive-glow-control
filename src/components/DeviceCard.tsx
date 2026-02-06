@@ -1,0 +1,166 @@
+import { useState } from 'react';
+import { Settings, ChevronRight, Wifi, WifiOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { SmartPlug } from '@/types/device';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { StatusIndicator } from './StatusIndicator';
+import { PowerIndicator } from './PowerIndicator';
+import {
+  OccupancyDisplay,
+  LightLevelDisplay,
+  PowerDisplay,
+} from './SensorDisplay';
+import { Badge } from '@/components/ui/badge';
+
+interface DeviceCardProps {
+  device: SmartPlug;
+  onToggle: (deviceId: string) => void;
+  onSelect: (device: SmartPlug) => void;
+}
+
+export function DeviceCard({ device, onToggle, onSelect }: DeviceCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  // ✅ SAFETY NORMALIZATION (CRITICAL)
+  const sensorData = device.sensorData ?? {
+    occupancy: 'vacant',
+    lightLevel: 0,
+  };
+
+  const powerData = device.powerData ?? {
+    currentWatts: 0,
+    isAbnormal: false,
+  };
+
+  const automationSettings = device.automationSettings ?? {
+    occupancyControlEnabled: false,
+  };
+
+  const override = device.override ?? {
+    active: false,
+    permanent: false,
+  };
+
+  return (
+    <Card
+      className={cn(
+        'device-card cursor-pointer animate-fade-in',
+        !device.isOnline && 'opacity-60'
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onSelect(device)}
+    >
+      <CardContent className="p-0">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                'flex items-center justify-center w-10 h-10 rounded-lg transition-colors',
+                device.isOn ? 'bg-energy/10' : 'bg-muted'
+              )}
+            >
+              <PowerIndicator isOn={device.isOn} size="lg" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">{device.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {device.location}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {device.isOnline ? (
+              <Wifi className="w-4 h-4 text-energy" />
+            ) : (
+              <WifiOff className="w-4 h-4 text-muted-foreground" />
+            )}
+            <StatusIndicator
+              status={device.isOnline ? 'online' : 'offline'}
+              size="sm"
+              pulse={device.isOnline}
+            />
+          </div>
+        </div>
+
+        {/* Automation Badge */}
+        <div className="flex items-center gap-2 mb-4">
+          <Badge
+            className={cn(
+              'automation-badge',
+              automationSettings.occupancyControlEnabled
+                ? 'active'
+                : 'inactive'
+            )}
+          >
+            <span
+              className={cn(
+                'w-1.5 h-1.5 rounded-full',
+                automationSettings.occupancyControlEnabled
+                  ? 'bg-energy'
+                  : 'bg-muted-foreground'
+              )}
+            />
+            {automationSettings.occupancyControlEnabled ? 'Auto' : 'Manual'}
+          </Badge>
+
+          {override.active && (
+            <Badge
+              variant="outline"
+              className="text-warning border-warning/30"
+            >
+              Override {override.permanent ? '(Permanent)' : '(Temp)'}
+            </Badge>
+          )}
+        </div>
+
+        {/* Sensor Readings */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <OccupancyDisplay status={sensorData.occupancy} compact />
+          <LightLevelDisplay lux={sensorData.lightLevel} compact />
+        </div>
+
+        {/* Power Reading */}
+        <PowerDisplay
+          watts={device.isOn ? powerData.currentWatts : 0}
+          isAbnormal={powerData.isAbnormal}
+          compact
+        />
+
+        {/* Footer Controls */}
+        <div className="flex items-center justify-between mt-4 pt-4 border-t">
+          <div
+            className="flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Switch
+              checked={device.isOn}
+              onCheckedChange={() => onToggle(device.id)}
+              disabled={!device.isOnline}
+            />
+            <span className="text-sm text-muted-foreground">
+              {device.isOn ? 'On' : 'Off'}
+            </span>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              'transition-transform',
+              isHovered && 'translate-x-1'
+            )}
+          >
+            <Settings className="w-4 h-4 mr-1" />
+            Details
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

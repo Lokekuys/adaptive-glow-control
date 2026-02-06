@@ -1,0 +1,82 @@
+// Device and sensor types for OccuPlug system
+
+export type ApplianceType = 'resistive' | 'inductive' | 'switching';
+
+export type LoadClassification = {
+  type: ApplianceType;
+  pwmCompatible: boolean;
+  description: string;
+};
+
+export type OccupancyStatus = 'occupied' | 'vacant' | 'unknown';
+
+export interface SensorData {
+  occupancy: OccupancyStatus;
+  lightLevel: number; // lux
+  lastUpdated: Date;
+}
+
+export interface PowerData {
+  currentWatts: number;
+  voltage: number;
+  current: number;
+  todayKwh: number;
+  isAbnormal: boolean;
+}
+
+export interface AutomationSettings {
+  occupancyControlEnabled: boolean;
+  autoOffDelaySeconds: number;
+  adaptiveLightingEnabled: boolean;
+  brightnessMin: number;
+  brightnessMax: number;
+  targetLux: number;
+}
+
+export interface DeviceOverride {
+  active: boolean;
+  permanent: boolean;
+  expiresAt?: Date;
+}
+
+export interface SmartPlug {
+  id: string;
+  name: string;
+  location: string;
+  isOnline: boolean;
+  isOn: boolean;
+  brightness: number; // 0-100, only applicable if PWM compatible
+  classification: LoadClassification;
+  sensorData: SensorData;
+  powerData: PowerData;
+  automationSettings: AutomationSettings;
+  override: DeviceOverride;
+  lastSeen: Date;
+}
+
+export interface PowerUsageEntry {
+  timestamp: Date;
+  watts: number;
+  kwh: number;
+}
+
+export interface DailyUsage {
+  date: string;
+  totalKwh: number;
+  peakWatts: number;
+  entries: PowerUsageEntry[];
+}
+
+// ESP-NOW communication types
+export interface ESPNowMessage {
+  deviceId: string;
+  command: 'status' | 'toggle' | 'setBrightness' | 'setAutomation' | 'override';
+  payload?: unknown;
+}
+
+export interface SystemStatus {
+  espNowConnected: boolean;
+  wifiConnected: boolean;
+  lastSync: Date;
+  deviceCount: number;
+}
