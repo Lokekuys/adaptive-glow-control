@@ -14,14 +14,15 @@ import { SmartPlug } from "@/types/device";
 import { DeviceCard } from "@/components/DeviceCard";
 import { DeviceDetailPanel } from "@/components/DeviceDetailPanel";
 import { SystemStatusBar } from "@/components/SystemStatusBar";
-import { PowerHistoryChart } from "@/components/PowerHistoryChart";
+import { PowerAnalytics } from "@/components/PowerAnalytics";
 import { AddDeviceDialog } from "@/components/AddDeviceDialog";
 import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const {
     devices,
-    dailyUsage,
+    dailyPowerData,
+    monthlyPowerData,
     systemStatus,
     toggleDevice,
     setBrightness,
@@ -162,10 +163,11 @@ if (devices === null) {
           </Card>
         </div>
 
-        {/* POWER HISTORY */}
-        {Array.isArray(dailyUsage) && dailyUsage.length > 0 && (
-          <PowerHistoryChart dailyUsage={dailyUsage} />
-        )}
+        {/* POWER ANALYTICS */}
+        <PowerAnalytics 
+          dailyData={dailyPowerData} 
+          monthlyData={monthlyPowerData} 
+        />
 
         {/* DEVICES GRID */}
         <div className="space-y-4">
