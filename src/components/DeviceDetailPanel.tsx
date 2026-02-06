@@ -231,14 +231,14 @@ export function DeviceDetailPanel({
 
               <Separator />
 
-              {/* Override */}
-              <div className="space-y-3">
-                <Label>Manual Override</Label>
+             {/* Override */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                <Label className="font-medium">Manual Override</Label>
                 <Switch
-                  checked={override.active}
-                  onCheckedChange={(checked) =>
-                    onOverride(device.id, checked, override.permanent)
-                  }
+                   checked={override.active}
+                    onCheckedChange={(checked) =>
+                      onOverride(device.id, checked, override.permanent)
+                    }
                 />
               </div>
 
