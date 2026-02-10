@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
-import { Plug, LogIn, Loader2 } from "lucide-react";
+import { Plug, UserPlus, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
-const Login = () => {
-  const { user, loading, login } = useAuth();
+const Register = () => {
+  const { user, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -27,15 +30,31 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await login(email, password);
+      await createUserWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
-      setError(
-        err.code === "auth/invalid-credential"
-          ? "Invalid email or password"
-          : err.message || "Login failed"
-      );
+      const code = err.code;
+      if (code === "auth/email-already-in-use") {
+        setError("An account with this email already exists");
+      } else if (code === "auth/weak-password") {
+        setError("Password is too weak — use at least 6 characters");
+      } else if (code === "auth/invalid-email") {
+        setError("Invalid email address");
+      } else {
+        setError(err.message || "Registration failed");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -49,9 +68,9 @@ const Login = () => {
             <Plug className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">VCCion</h1>
+            <h1 className="text-2xl font-bold text-foreground">Create Account</h1>
             <p className="text-sm text-muted-foreground">
-              Sign in to access the control panel
+              Register to access VCCion
             </p>
           </div>
         </CardHeader>
@@ -79,6 +98,17 @@ const Login = () => {
                 required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
 
             {error && (
               <p className="text-sm text-destructive text-center">{error}</p>
@@ -88,15 +118,15 @@ const Login = () => {
               {submitting ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
               ) : (
-                <LogIn className="w-4 h-4 mr-2" />
+                <UserPlus className="w-4 h-4 mr-2" />
               )}
-              Sign In
+              Create Account
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link to="/register" className="text-primary hover:underline font-medium">
-                Register
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary hover:underline font-medium">
+                Sign in
               </Link>
             </p>
           </form>
@@ -106,4 +136,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
