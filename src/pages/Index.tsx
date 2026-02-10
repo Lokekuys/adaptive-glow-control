@@ -6,7 +6,10 @@ import {
   User,
   Sun,
   Shield,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 import { useDevices } from "@/hooks/useDevices";
 import { SmartPlug } from "@/types/device";
@@ -19,6 +22,7 @@ import { AddDeviceDialog } from "@/components/AddDeviceDialog";
 import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
+  const { logout } = useAuth();
   const {
     devices,
     dailyPowerData,
@@ -99,9 +103,14 @@ if (devices === null) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-              <GraduationCap className="w-3.5 h-3.5" />
-              Research Prototype
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                <GraduationCap className="w-3.5 h-3.5" />
+                Research Prototype
+              </div>
+              <Button variant="ghost" size="icon" onClick={logout} title="Sign out">
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
