@@ -37,7 +37,9 @@ export function StatusIndicator({
         )}
       />
       {label && (
-        <span className="text-sm text-muted-foreground capitalize">{label}</span>
+        <span className="text-sm text-muted-foreground capitalize">
+          {label === 'Online' ? 'Connected' : label}
+        </span>
       )}
     </div>
   );

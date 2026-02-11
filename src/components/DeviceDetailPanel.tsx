@@ -8,8 +8,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SmartPlug, AutomationSettings } from "@/types/device";
+import { SmartPlug, AutomationSettings, ScheduleEntry } from "@/types/device";
 import { Button } from "@/components/ui/button";
+import { ScheduleEditor } from "./ScheduleEditor";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ interface DeviceDetailPanelProps {
   ) => void;
   onOverride: (deviceId: string, active: boolean, permanent: boolean) => void;
   onRemove: (deviceId: string) => void;
+  onScheduleChange: (deviceId: string, schedule: ScheduleEntry) => void;
 }
 
 export function DeviceDetailPanel({
@@ -64,6 +66,7 @@ export function DeviceDetailPanel({
   onAutomationChange,
   onOverride,
   onRemove,
+  onScheduleChange,
 }: DeviceDetailPanelProps) {
   if (!device) return null;
 
@@ -131,7 +134,7 @@ export function DeviceDetailPanel({
             </div>
             <StatusIndicator
               status={device.isOnline ? "online" : "offline"}
-              label={device.isOnline ? "Online" : "Offline"}
+              label={device.isOnline ? "Connected" : "Offline"}
             />
           </div>
         </SheetHeader>
@@ -271,6 +274,14 @@ export function DeviceDetailPanel({
                     }
                 />
               </div>
+
+              {/* Schedule - only when override is active */}
+              {override.active && (
+                <ScheduleEditor
+                  schedule={device.override?.schedule}
+                  onChange={(schedule) => onScheduleChange(device.id, schedule)}
+                />
+              )}
 
               <Separator />
 
