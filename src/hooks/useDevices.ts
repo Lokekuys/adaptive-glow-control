@@ -195,6 +195,7 @@ export function useDevices() {
 
   /* ---------- AUTO-OFF TIMER LOGIC ---------- */
   const vacancyTimers = useRef<Record<string, NodeJS.Timeout>>({});
+  const [countdowns, setCountdowns] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!devices) return;
@@ -215,6 +216,11 @@ export function useDevices() {
         !override.active;
 
       if (shouldAutoOff && !vacancyTimers.current[id]) {
+        const delayMs = (auto.autoOffDelaySeconds ?? 300) * 1000;
+        const endsAt = Date.now() + delayMs;
+
+        setCountdowns((prev) => ({ ...prev, [id]: endsAt }));
+
         // Start countdown
         vacancyTimers.current[id] = setTimeout(() => {
           update(ref(rtdb, `devices/${id}`), {
@@ -222,11 +228,21 @@ export function useDevices() {
             lastSeen: new Date().toISOString(),
           });
           delete vacancyTimers.current[id];
-        }, (auto.autoOffDelaySeconds ?? 300) * 1000);
+          setCountdowns((prev) => {
+            const next = { ...prev };
+            delete next[id];
+            return next;
+          });
+        }, delayMs);
       } else if (!shouldAutoOff && vacancyTimers.current[id]) {
         // Cancel timer (occupied again, turned off, or override active)
         clearTimeout(vacancyTimers.current[id]);
         delete vacancyTimers.current[id];
+        setCountdowns((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
       }
     });
   }, [devices]);
@@ -299,6 +315,7 @@ export function useDevices() {
 
   return {
     devices,
+    countdowns,
     dailyUsage,
     dailyPowerData,
     monthlyPowerData,

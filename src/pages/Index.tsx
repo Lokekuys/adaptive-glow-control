@@ -25,6 +25,7 @@ const Index = () => {
   const { logout } = useAuth();
   const {
     devices,
+    countdowns,
     dailyPowerData,
     monthlyPowerData,
     systemStatus,
@@ -200,6 +201,7 @@ if (devices === null) {
         device={device}
         onToggle={toggleDevice}
         onSelect={handleSelectDevice}
+        countdownEndsAt={countdowns[device.id]}
       />
     ))
   )}

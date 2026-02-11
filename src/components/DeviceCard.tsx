@@ -13,6 +13,7 @@ import {
   PowerDisplay,
 } from './SensorDisplay';
 import { Badge } from '@/components/ui/badge';
+import { CountdownTimer } from './CountdownTimer';
 import { ref, update } from 'firebase/database';
 import { rtdb } from '@/lib/firebase';
 
@@ -20,9 +21,10 @@ interface DeviceCardProps {
   device: SmartPlug;
   onToggle: (deviceId: string) => void;
   onSelect: (device: SmartPlug) => void;
+  countdownEndsAt?: number;
 }
 
-export function DeviceCard({ device, onToggle, onSelect }: DeviceCardProps) {
+export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: DeviceCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   // 🔹 Rename state
@@ -174,6 +176,9 @@ export function DeviceCard({ device, onToggle, onSelect }: DeviceCardProps) {
           isAbnormal={powerData.isAbnormal}
           compact
         />
+
+        {/* Countdown Timer */}
+        {countdownEndsAt && <div className="mt-2"><CountdownTimer endsAt={countdownEndsAt} /></div>}
 
         {/* Footer Controls */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t">
