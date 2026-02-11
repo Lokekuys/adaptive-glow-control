@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import {
   SmartPlug,
   AutomationSettings,
+  ScheduleEntry,
   DailyUsage,
   SystemStatus,
   ApplianceType,
@@ -309,6 +310,13 @@ export function useDevices() {
     set(ref(rtdb, `devices/${deviceId}`), null);
   }, []);
 
+  const updateSchedule = useCallback(
+    (deviceId: string, schedule: ScheduleEntry) => {
+      update(ref(rtdb, `devices/${deviceId}/override`), { schedule });
+    },
+    []
+  );
+
   const refreshDevices = useCallback(() => {
     // placeholder for ESP-NOW sync
   }, []);
@@ -326,6 +334,7 @@ export function useDevices() {
     setOverride,
     addDevice,
     removeDevice,
+    updateSchedule,
     refreshDevices,
   };
 }

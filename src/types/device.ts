@@ -33,10 +33,20 @@ export interface AutomationSettings {
   targetLux: number;
 }
 
+export type DayOfWeek = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
+
+export interface ScheduleEntry {
+  enabled: boolean;
+  days: DayOfWeek[];
+  startTime: string; // "HH:mm"
+  endTime: string;   // "HH:mm"
+}
+
 export interface DeviceOverride {
   active: boolean;
   permanent: boolean;
   expiresAt?: Date;
+  schedule?: ScheduleEntry;
 }
 
 export interface SmartPlug {

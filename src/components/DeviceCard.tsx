@@ -127,6 +127,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
             )}
             <StatusIndicator
               status={device.isOnline ? 'online' : 'offline'}
+              label={device.isOnline ? 'Connected' : 'Offline'}
               size="sm"
               pulse={device.isOnline}
             />

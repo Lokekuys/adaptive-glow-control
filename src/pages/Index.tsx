@@ -35,6 +35,7 @@ const Index = () => {
     setOverride,
     addDevice,
     removeDevice,
+    updateSchedule,
     refreshDevices,
   } = useDevices();
 
@@ -221,6 +222,7 @@ if (devices === null) {
           onAutomationChange={updateAutomation}
           onOverride={setOverride}
           onRemove={removeDevice}
+          onScheduleChange={updateSchedule}
         />
       )}
     </div>
