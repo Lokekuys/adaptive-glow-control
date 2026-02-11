@@ -12,6 +12,7 @@ import { SmartPlug, AutomationSettings } from "@/types/device";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { StatusIndicator } from "./StatusIndicator";
@@ -88,9 +89,19 @@ export function DeviceDetailPanel({
     permanent: false,
   };
 
-  const autoOffMinutes = Math.floor(
-    (automationSettings.autoOffDelaySeconds ?? 300) / 60
-  );
+  const totalSeconds = automationSettings.autoOffDelaySeconds ?? 300;
+  const autoOffHours = Math.floor(totalSeconds / 3600);
+  const autoOffMinutes = Math.floor((totalSeconds % 3600) / 60);
+
+  const handleTimeChange = (hours: number, minutes: number) => {
+    const clampedHours = Math.max(0, Math.min(23, hours));
+    const clampedMinutes = Math.max(0, Math.min(59, minutes));
+    const totalSecs = clampedHours * 3600 + clampedMinutes * 60;
+    // Minimum 1 minute
+    onAutomationChange(device.id, {
+      autoOffDelaySeconds: Math.max(60, totalSecs),
+    });
+  };
 
   const handleRemove = () => {
     onRemove(device.id);
@@ -207,24 +218,43 @@ export function DeviceDetailPanel({
                 </div>
 
                 {automationSettings.occupancyControlEnabled && (
-                  <div className="space-y-2 p-3 rounded-lg border">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-3 p-3 rounded-lg border">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
                       <Label>Auto-Off Delay</Label>
-                      <span className="text-sm font-mono">
-                        {autoOffMinutes} min
-                      </span>
                     </div>
-                    <Slider
-                      value={[autoOffMinutes]}
-                      onValueChange={([value]) =>
-                        onAutomationChange(device.id, {
-                          autoOffDelaySeconds: value * 60,
-                        })
-                      }
-                      min={1}
-                      max={30}
-                      step={1}
-                    />
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={23}
+                          value={autoOffHours}
+                          onChange={(e) =>
+                            handleTimeChange(parseInt(e.target.value) || 0, autoOffMinutes)
+                          }
+                          className="w-16 text-center font-mono"
+                        />
+                        <span className="text-sm text-muted-foreground">h</span>
+                      </div>
+                      <span className="text-muted-foreground font-bold">:</span>
+                      <div className="flex items-center gap-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={59}
+                          value={autoOffMinutes}
+                          onChange={(e) =>
+                            handleTimeChange(autoOffHours, parseInt(e.target.value) || 0)
+                          }
+                          className="w-16 text-center font-mono"
+                        />
+                        <span className="text-sm text-muted-foreground">m</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Device turns off after {autoOffHours > 0 ? `${autoOffHours}h ` : ""}{autoOffMinutes}m of vacancy
+                    </p>
                   </div>
                 )}
               </div>
