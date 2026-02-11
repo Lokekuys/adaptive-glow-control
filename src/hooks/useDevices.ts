@@ -1,6 +1,6 @@
 import { ref, onValue, set, update } from "firebase/database";
 import { rtdb } from "../lib/firebase";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   SmartPlug,
   AutomationSettings,
@@ -191,6 +191,51 @@ export function useDevices() {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  /* ---------- AUTO-OFF TIMER LOGIC ---------- */
+  const vacancyTimers = useRef<Record<string, NodeJS.Timeout>>({});
+
+  useEffect(() => {
+    if (!devices) return;
+
+    devices.forEach((device) => {
+      const {
+        id,
+        isOn,
+        sensorData,
+        automationSettings: auto,
+        override,
+      } = device;
+
+      const shouldAutoOff =
+        isOn &&
+        auto.occupancyControlEnabled &&
+        sensorData.occupancy === "vacant" &&
+        !override.active;
+
+      if (shouldAutoOff && !vacancyTimers.current[id]) {
+        // Start countdown
+        vacancyTimers.current[id] = setTimeout(() => {
+          update(ref(rtdb, `devices/${id}`), {
+            isOn: false,
+            lastSeen: new Date().toISOString(),
+          });
+          delete vacancyTimers.current[id];
+        }, (auto.autoOffDelaySeconds ?? 300) * 1000);
+      } else if (!shouldAutoOff && vacancyTimers.current[id]) {
+        // Cancel timer (occupied again, turned off, or override active)
+        clearTimeout(vacancyTimers.current[id]);
+        delete vacancyTimers.current[id];
+      }
+    });
+  }, [devices]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(vacancyTimers.current).forEach(clearTimeout);
+    };
   }, []);
 
   /* ---------- WRITE TO FIREBASE ---------- */
