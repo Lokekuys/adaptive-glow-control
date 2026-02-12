@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { SmartPlug, AutomationSettings, ScheduleEntry } from "@/types/device";
 import { Button } from "@/components/ui/button";
 import { ScheduleEditor } from "./ScheduleEditor";
@@ -153,7 +154,13 @@ export function DeviceDetailPanel({
             </div>
             <Switch
               checked={device.isOn}
-              onCheckedChange={() => onToggle(device.id)}
+              onCheckedChange={() => {
+                if (device.isOn && device.override?.active && device.override?.schedule?.enabled) {
+                  toast.warning("Manual scheduling is active. Please turn off the manual override first before switching off this device.");
+                  return;
+                }
+                onToggle(device.id);
+              }}
               disabled={!device.isOnline}
             />
           </div>

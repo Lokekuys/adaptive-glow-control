@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Settings, ChevronRight, Wifi, WifiOff, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { SmartPlug } from '@/types/device';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -189,7 +190,13 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
           >
             <Switch
               checked={device.isOn}
-              onCheckedChange={() => onToggle(device.id)}
+              onCheckedChange={() => {
+                if (device.isOn && device.override?.active && device.override?.schedule?.enabled) {
+                  toast.warning("Manual scheduling is active. Please turn off the manual override first before switching off this device.");
+                  return;
+                }
+                onToggle(device.id);
+              }}
               disabled={!device.isOnline}
             />
             <span className="text-sm text-muted-foreground">
