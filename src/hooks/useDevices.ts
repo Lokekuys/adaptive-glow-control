@@ -159,6 +159,7 @@ export function useDevices() {
             override: {
               active: d.override?.active ?? false,
               permanent: d.override?.permanent ?? false,
+              ...(d.override?.schedule ? { schedule: d.override.schedule } : {}),
             },
 
             lastSeen: d.lastSeen ? new Date(d.lastSeen) : new Date(),
