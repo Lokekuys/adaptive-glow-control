@@ -255,6 +255,51 @@ export function useDevices() {
     };
   }, []);
 
+  /* ---------- SCHEDULE-BASED AUTO ON/OFF ---------- */
+  const DAY_MAP: Record<number, string> = {
+    0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat',
+  };
+
+  useEffect(() => {
+    if (!devices) return;
+
+    const checkSchedules = () => {
+      const now = new Date();
+      const currentDay = DAY_MAP[now.getDay()];
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      devices.forEach((device) => {
+        const schedule = device.override?.schedule;
+        if (!schedule?.enabled || !schedule.days.length) return;
+        if (!device.override?.active) return;
+
+        const isScheduledDay = schedule.days.includes(currentDay as any);
+        const [startH, startM] = schedule.startTime.split(':').map(Number);
+        const [endH, endM] = schedule.endTime.split(':').map(Number);
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        const inWindow = isScheduledDay && currentMinutes >= startMinutes && currentMinutes < endMinutes;
+
+        if (inWindow && !device.isOn) {
+          update(ref(rtdb, `devices/${device.id}`), {
+            isOn: true,
+            lastSeen: new Date().toISOString(),
+          });
+        } else if (!inWindow && device.isOn && isScheduledDay && currentMinutes >= endMinutes) {
+          update(ref(rtdb, `devices/${device.id}`), {
+            isOn: false,
+            lastSeen: new Date().toISOString(),
+          });
+        }
+      });
+    };
+
+    checkSchedules(); // run immediately
+    const interval = setInterval(checkSchedules, 30_000); // check every 30s
+    return () => clearInterval(interval);
+  }, [devices]);
+
   /* ---------- WRITE TO FIREBASE ---------- */
 
   const toggleDevice = useCallback(
