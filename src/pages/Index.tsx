@@ -43,18 +43,14 @@ const Index = () => {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  // 🔒 HARD SAFETY GUARD
- // 🔄 Still loading
-if (devices === null) {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-muted-foreground">Loading devices…</p>
-    </div>
-  );
-}
-
-
-
+  // 🔒 HARD SAFETY GUARD — must be AFTER all hooks
+  if (devices === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading devices…</p>
+      </div>
+    );
+  }
 
   // ✅ DERIVE DEVICE FROM REALTIME STATE
   const selectedDevice: SmartPlug | null = selectedDeviceId
