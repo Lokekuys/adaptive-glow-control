@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Calendar, Clock, Repeat } from 'lucide-react';
 import { DayOfWeek, ScheduleEntry } from '@/types/device';
 import { Label } from '@/components/ui/label';
@@ -19,6 +20,15 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
     days: schedule?.days ?? [],
     startTime: schedule?.startTime ?? '08:00',
     endTime: schedule?.endTime ?? '10:00',
+  };
+
+  const updateSchedule = (patch: Partial<ScheduleEntry>) => {
+    const next = { ...current, ...patch };
+    if (next.startTime >= next.endTime) {
+      toast.error('Invalid time range. Start time must be before end time.');
+      return;
+    }
+    onChange(next);
   };
 
   const toggleDay = (day: DayOfWeek) => {
@@ -78,7 +88,7 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
                   type="time"
                   value={current.startTime}
                   onChange={(e) =>
-                    onChange({ ...current, startTime: e.target.value })
+                    updateSchedule({ startTime: e.target.value })
                   }
                   className="w-28 text-sm font-mono"
                 />
@@ -88,7 +98,7 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
                 type="time"
                 value={current.endTime}
                 onChange={(e) =>
-                  onChange({ ...current, endTime: e.target.value })
+                  updateSchedule({ endTime: e.target.value })
                 }
                 className="w-28 text-sm font-mono"
               />
