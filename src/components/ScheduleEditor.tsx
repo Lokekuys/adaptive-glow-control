@@ -14,11 +14,11 @@ interface ScheduleEditorProps {
 }
 
 export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
-  const current: ScheduleEntry = schedule ?? {
-    enabled: false,
-    days: [],
-    startTime: '08:00',
-    endTime: '10:00',
+  const current: ScheduleEntry = {
+    enabled: schedule?.enabled ?? false,
+    days: schedule?.days ?? [],
+    startTime: schedule?.startTime ?? '08:00',
+    endTime: schedule?.endTime ?? '10:00',
   };
 
   const toggleDay = (day: DayOfWeek) => {
