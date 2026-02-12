@@ -269,9 +269,14 @@ export function DeviceDetailPanel({
                 <Label className="font-medium">Manual Override</Label>
                 <Switch
                    checked={override.active}
-                    onCheckedChange={(checked) =>
-                      onOverride(device.id, checked, override.permanent)
-                    }
+                    onCheckedChange={(checked) => {
+                      onOverride(device.id, checked, override.permanent);
+                      if (checked) {
+                        onAutomationChange(device.id, {
+                          occupancyControlEnabled: false,
+                        });
+                      }
+                    }}
                 />
               </div>
 
