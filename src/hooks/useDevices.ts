@@ -271,7 +271,7 @@ export function useDevices() {
 
       devices.forEach((device) => {
         const schedule = device.override?.schedule;
-        if (!schedule?.enabled || !schedule.days.length) return;
+        if (!schedule?.enabled || !schedule.days?.length) return;
         if (!device.override?.active) return;
 
         const isScheduledDay = schedule.days.includes(currentDay as any);
