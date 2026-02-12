@@ -275,6 +275,10 @@ export function DeviceDetailPanel({
                         onAutomationChange(device.id, {
                           occupancyControlEnabled: false,
                         });
+                      } else {
+                        onAutomationChange(device.id, {
+                          occupancyControlEnabled: true,
+                        });
                       }
                     }}
                 />
