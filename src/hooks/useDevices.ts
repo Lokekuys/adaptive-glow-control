@@ -364,7 +364,7 @@ export function useDevices() {
   );
 
   const refreshDevices = useCallback(() => {
-    // placeholder for ESP-NOW sync
+    window.location.reload();
   }, []);
 
   return {
