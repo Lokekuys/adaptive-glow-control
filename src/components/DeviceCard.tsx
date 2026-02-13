@@ -7,6 +7,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { StatusIndicator } from './StatusIndicator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { PowerIndicator } from './PowerIndicator';
 import {
   OccupancyDisplay,
@@ -27,7 +37,7 @@ interface DeviceCardProps {
 
 export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: DeviceCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-
+  const [showScheduleWarning, setShowScheduleWarning] = useState(false);
   // 🔹 Rename state
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(device.name);
@@ -192,7 +202,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
               checked={device.isOn}
               onCheckedChange={() => {
                 if (device.isOn && device.override?.active && device.override?.schedule?.enabled) {
-                  toast.warning("Manual scheduling is active. Please turn off the manual override first before switching off this device.");
+                  setShowScheduleWarning(true);
                   return;
                 }
                 onToggle(device.id);
@@ -218,6 +228,23 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
           </Button>
         </div>
       </CardContent>
+
+      {/* Schedule Warning Dialog */}
+      <AlertDialog open={showScheduleWarning} onOpenChange={setShowScheduleWarning}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cannot Turn Off Device</AlertDialogTitle>
+            <AlertDialogDescription>
+              Manual scheduling is currently active on this device. To turn off the device, please disable the manual override first.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowScheduleWarning(false)}>
+              Understood
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

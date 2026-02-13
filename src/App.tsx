@@ -4,6 +4,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { Loader2 } from "lucide-react";
+import { Toaster } from "@/components/ui/sonner";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -35,6 +36,7 @@ function App() {
             }
           />
         </Routes>
+        <Toaster />
       </AuthProvider>
     </BrowserRouter>
   );

@@ -156,7 +156,7 @@ export function DeviceDetailPanel({
               checked={device.isOn}
               onCheckedChange={() => {
                 if (device.isOn && device.override?.active && device.override?.schedule?.enabled) {
-                  toast.warning("Manual scheduling is active. Please turn off the manual override first before switching off this device.");
+                  toast.warning("Manual scheduling is currently active. Please disable the manual override first before turning off this device.");
                   return;
                 }
                 onToggle(device.id);
