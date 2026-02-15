@@ -1,13 +1,13 @@
 import { useState } from "react";
 import {
   Plug,
-  GraduationCap,
   Zap,
   User,
   Sun,
   Shield,
   LogOut,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -102,10 +102,7 @@ const Index = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                <GraduationCap className="w-3.5 h-3.5" />
-                Research Prototype
-              </div>
+              <ThemeToggle />
               <Button variant="ghost" size="icon" onClick={logout} title="Sign out">
                 <LogOut className="w-4 h-4" />
               </Button>

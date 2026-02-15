@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -22,6 +23,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
     <BrowserRouter>
       <AuthProvider>
         <Routes>
@@ -39,6 +41,7 @@ function App() {
         <Toaster />
       </AuthProvider>
     </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
