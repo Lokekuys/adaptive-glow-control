@@ -47,6 +47,7 @@ export interface DeviceOverride {
   permanent: boolean;
   expiresAt?: Date;
   schedule?: ScheduleEntry;
+  manualOverrideUntil?: string; // ISO timestamp
 }
 
 export interface SmartPlug {

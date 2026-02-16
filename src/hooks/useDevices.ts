@@ -9,6 +9,7 @@ import {
   SystemStatus,
   ApplianceType,
 } from "@/types/device";
+import { getScheduleStatus, getNextScheduleBoundary } from "@/lib/scheduleUtils";
 
 /* ---------- MOCK DATA (SEED ONLY) ---------- */
 
@@ -174,6 +175,7 @@ export function useDevices() {
             override: {
               active: d.override?.active ?? false,
               permanent: d.override?.permanent ?? false,
+              ...(d.override?.manualOverrideUntil ? { manualOverrideUntil: d.override.manualOverrideUntil } : {}),
               ...(d.override?.schedule ? { schedule: d.override.schedule } : {}),
             },
 
@@ -289,6 +291,17 @@ export function useDevices() {
         if (!schedule?.enabled || !schedule.days?.length) return;
         if (!device.override?.active) return;
 
+        // Respect manual override until boundary
+        const manualUntil = device.override?.manualOverrideUntil;
+        if (manualUntil && new Date(manualUntil) > now) return;
+
+        // Clear expired manualOverrideUntil
+        if (manualUntil && new Date(manualUntil) <= now) {
+          update(ref(rtdb, `devices/${device.id}/override`), {
+            manualOverrideUntil: null,
+          });
+        }
+
         const isScheduledDay = schedule.days.includes(currentDay as any);
         const [startH, startM] = schedule.startTime.split(':').map(Number);
         const [endH, endM] = schedule.endTime.split(':').map(Number);
@@ -311,8 +324,8 @@ export function useDevices() {
       });
     };
 
-    checkSchedules(); // run immediately
-    const interval = setInterval(checkSchedules, 30_000); // check every 30s
+    checkSchedules();
+    const interval = setInterval(checkSchedules, 30_000);
     return () => clearInterval(interval);
   }, [devices]);
 
@@ -323,10 +336,23 @@ export function useDevices() {
       const device = devices?.find((d) => d.id === deviceId);
       if (!device) return;
 
-      update(ref(rtdb, `devices/${deviceId}`), {
+      const updates: Record<string, any> = {
         isOn: !device.isOn,
         lastSeen: new Date().toISOString(),
-      });
+      };
+
+      // If schedule is active, set manual override until next boundary
+      const scheduleStatus = getScheduleStatus(device);
+      if (scheduleStatus === 'active' && device.override?.schedule?.enabled) {
+        const boundary = getNextScheduleBoundary(device);
+        if (boundary) {
+          update(ref(rtdb, `devices/${deviceId}/override`), {
+            manualOverrideUntil: boundary,
+          });
+        }
+      }
+
+      update(ref(rtdb, `devices/${deviceId}`), updates);
     },
     [devices]
   );
