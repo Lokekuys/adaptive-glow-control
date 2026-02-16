@@ -96,7 +96,7 @@ const Index = () => {
                   VCCion
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  Occupancy-Driven Smart Plug Controller
+                  Occupancy-Driven Smart Plug
                 </p>
               </div>
             </div>
