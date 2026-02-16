@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -11,9 +11,11 @@ import {
   Cell,
   CartesianGrid,
 } from 'recharts';
-import { Zap, Calendar, TrendingUp } from 'lucide-react';
+import { Zap, Calendar, TrendingUp, Pencil, Check, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface DailyData {
   date: string;
@@ -30,9 +32,13 @@ interface MonthlyData {
 interface PowerAnalyticsProps {
   dailyData: DailyData[];
   monthlyData: MonthlyData[];
+  vecoRate: number;
+  onVecoRateChange: (rate: number) => void;
 }
 
-export function PowerAnalytics({ dailyData, monthlyData }: PowerAnalyticsProps) {
+export function PowerAnalytics({ dailyData, monthlyData, vecoRate, onVecoRateChange }: PowerAnalyticsProps) {
+  const [isEditingRate, setIsEditingRate] = useState(false);
+  const [editRate, setEditRate] = useState(vecoRate.toString());
   // Daily stats
   const dailyStats = useMemo(() => {
     if (dailyData.length === 0) return { total: 0, avg: 0, max: 0 };
@@ -50,13 +56,59 @@ export function PowerAnalytics({ dailyData, monthlyData }: PowerAnalyticsProps) 
     return { avgMonthly, totalYear };
   }, [monthlyData]);
 
+  const handleSaveRate = () => {
+    const parsed = parseFloat(editRate);
+    if (!isNaN(parsed) && parsed > 0) {
+      onVecoRateChange(parsed);
+      setIsEditingRate(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditRate(vecoRate.toString());
+    setIsEditingRate(false);
+  };
+
   return (
     <Card className="animate-fade-in">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base font-medium">
-          <Zap className="w-4 h-4 text-sensor-power" />
-          Power Consumption Analytics
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base font-medium">
+            <Zap className="w-4 h-4 text-sensor-power" />
+            Power Consumption Analytics
+          </CardTitle>
+          <div className="flex items-center gap-2 text-sm">
+            {isEditingRate ? (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground font-medium">VECO Rate:</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editRate}
+                  onChange={(e) => setEditRate(e.target.value)}
+                  className="w-20 h-7 text-sm"
+                  autoFocus
+                />
+                <span className="text-muted-foreground text-xs">₱/kWh</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleSaveRate}>
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCancelEdit}>
+                  <X className="w-3.5 h-3.5 text-destructive" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground font-medium">VECO Rate:</span>
+                <span className="font-bold text-foreground">{vecoRate.toFixed(2)}</span>
+                <span className="text-muted-foreground text-xs">₱/kWh</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditRate(vecoRate.toString()); setIsEditingRate(true); }}>
+                  <Pencil className="w-3 h-3 text-muted-foreground" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="daily" className="w-full">
