@@ -1,4 +1,4 @@
-import { ref, onValue, set, update } from "firebase/database";
+import { ref, onValue, set, update, get } from "firebase/database";
 import { rtdb } from "../lib/firebase";
 import { useState, useCallback, useEffect, useRef } from "react";
 import {
@@ -106,6 +106,7 @@ const generateMonthlyData = () => {
 
 export function useDevices() {
   const [devices, setDevices] = useState<SmartPlug[] | null>(null);
+  const [vecoRate, setVecoRate] = useState<number>(12.79);
   const [dailyUsage] = useState<DailyUsage[]>([]);
   const [dailyPowerData] = useState(generateDailyData);
   const [monthlyPowerData] = useState(generateMonthlyData);
@@ -115,6 +116,20 @@ export function useDevices() {
     lastSync: new Date(),
     deviceCount: 0,
   });
+
+  // Read VECO rate from Firebase
+  useEffect(() => {
+    const rateRef = ref(rtdb, "settings/vecoRate");
+    const unsubscribe = onValue(rateRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setVecoRate(snapshot.val());
+      } else {
+        // Seed default rate
+        set(rateRef, 12.79);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   /* ---------- READ FROM FIREBASE ---------- */
   useEffect(() => {
@@ -363,6 +378,10 @@ export function useDevices() {
     []
   );
 
+  const updateVecoRate = useCallback((rate: number) => {
+    set(ref(rtdb, "settings/vecoRate"), rate);
+  }, []);
+
   const refreshDevices = useCallback(() => {
     window.location.reload();
   }, []);
@@ -373,6 +392,7 @@ export function useDevices() {
     dailyUsage,
     dailyPowerData,
     monthlyPowerData,
+    vecoRate,
     systemStatus,
     toggleDevice,
     setBrightness,
@@ -381,6 +401,7 @@ export function useDevices() {
     addDevice,
     removeDevice,
     updateSchedule,
+    updateVecoRate,
     refreshDevices,
   };
 }

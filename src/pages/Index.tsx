@@ -28,6 +28,7 @@ const Index = () => {
     countdowns,
     dailyPowerData,
     monthlyPowerData,
+    vecoRate,
     systemStatus,
     toggleDevice,
     setBrightness,
@@ -36,6 +37,7 @@ const Index = () => {
     addDevice,
     removeDevice,
     updateSchedule,
+    updateVecoRate,
     refreshDevices,
   } = useDevices();
 
@@ -170,7 +172,9 @@ const Index = () => {
         {/* POWER ANALYTICS */}
         <PowerAnalytics 
           dailyData={dailyPowerData} 
-          monthlyData={monthlyPowerData} 
+          monthlyData={monthlyPowerData}
+          vecoRate={vecoRate}
+          onVecoRateChange={updateVecoRate}
         />
 
         {/* DEVICES GRID */}
