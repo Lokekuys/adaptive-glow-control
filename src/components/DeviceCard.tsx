@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, ChevronRight, Wifi, WifiOff, Pencil } from 'lucide-react';
+import { Settings, ChevronRight, Wifi, WifiOff, Pencil, Hand, Calendar, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SmartPlug } from '@/types/device';
 import { Card, CardContent } from '@/components/ui/card';
@@ -90,20 +90,15 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
           </div>
         </div>
 
-        {/* Badges */}
+        {/* Control Mode Badge */}
         <div className="flex items-center gap-2 mb-4 flex-wrap">
-          <Badge className={cn('automation-badge', automationSettings.occupancyControlEnabled ? 'active' : 'inactive')}>
-            <span className={cn('w-1.5 h-1.5 rounded-full', automationSettings.occupancyControlEnabled ? 'bg-energy' : 'bg-muted-foreground')} />
-            {automationSettings.occupancyControlEnabled ? 'Auto' : 'Manual'}
+          <Badge className={cn('automation-badge', device.controlMode === 'smart' ? 'active' : device.controlMode === 'scheduled' ? 'active' : 'inactive')}>
+            {device.controlMode === 'manual' && <><Hand className="w-3 h-3" /> Manual</>}
+            {device.controlMode === 'scheduled' && <><Calendar className="w-3 h-3" /> Scheduled</>}
+            {device.controlMode === 'smart' && <><Brain className="w-3 h-3" /> Smart</>}
           </Badge>
 
-          {override.active && (
-            <Badge variant="outline" className="text-warning border-warning/30">
-              Override {override.permanent ? '(Permanent)' : '(Temp)'}
-            </Badge>
-          )}
-
-          {scheduleLabel && (
+          {device.controlMode === 'scheduled' && scheduleLabel && (
             <Badge variant="outline" className={cn(
               'text-xs',
               scheduleStatus === 'active' ? 'text-energy border-energy/30' : 'text-muted-foreground border-muted-foreground/30'
