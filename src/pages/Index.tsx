@@ -34,6 +34,7 @@ const Index = () => {
     setBrightness,
     updateAutomation,
     setOverride,
+    setControlMode,
     addDevice,
     removeDevice,
     updateSchedule,
@@ -220,6 +221,7 @@ const Index = () => {
           onOverride={setOverride}
           onRemove={removeDevice}
           onScheduleChange={updateSchedule}
+          onControlModeChange={setControlMode}
         />
       )}
     </div>
