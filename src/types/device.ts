@@ -2,6 +2,8 @@
 
 export type ApplianceType = 'resistive' | 'inductive' | 'switching';
 
+export type ControlMode = 'manual' | 'scheduled' | 'smart';
+
 export type LoadClassification = {
   type: ApplianceType;
   pwmCompatible: boolean;
@@ -57,6 +59,7 @@ export interface SmartPlug {
   isOnline: boolean;
   isOn: boolean;
   brightness: number; // 0-100, only applicable if PWM compatible
+  controlMode: ControlMode;
   classification: LoadClassification;
   sensorData: SensorData;
   powerData: PowerData;

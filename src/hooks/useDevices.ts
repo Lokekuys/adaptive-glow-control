@@ -8,6 +8,7 @@ import {
   DailyUsage,
   SystemStatus,
   ApplianceType,
+  ControlMode,
 } from "@/types/device";
 import { getScheduleStatus, getNextScheduleBoundary } from "@/lib/scheduleUtils";
 
@@ -34,6 +35,7 @@ const createMockDevice = (
     isOnline: true,
     isOn: false,
     brightness: pwmCompatible ? 50 : 100,
+    controlMode: 'manual' as ControlMode,
     classification: {
       type,
       pwmCompatible,
@@ -143,6 +145,7 @@ export function useDevices() {
         const deviceList: SmartPlug[] = Object.values(data)
           .map((d: any) => ({
             ...d,
+            controlMode: d.controlMode ?? 'manual',
 
             sensorData: {
               occupancy: d.sensorData?.occupancy ?? "vacant",
@@ -230,9 +233,9 @@ export function useDevices() {
 
       const shouldAutoOff =
         isOn &&
+        device.controlMode === 'smart' &&
         auto.occupancyControlEnabled &&
-        sensorData.occupancy === "vacant" &&
-        !override.active;
+        sensorData.occupancy === "vacant";
 
       if (shouldAutoOff && !vacancyTimers.current[id]) {
         const delayMs = (auto.autoOffDelaySeconds ?? 300) * 1000;
@@ -289,7 +292,7 @@ export function useDevices() {
       devices.forEach((device) => {
         const schedule = device.override?.schedule;
         if (!schedule?.enabled || !schedule.days?.length) return;
-        if (!device.override?.active) return;
+        if (device.controlMode !== 'scheduled') return;
 
         // Respect manual override until boundary
         const manualUntil = device.override?.manualOverrideUntil;
@@ -341,14 +344,16 @@ export function useDevices() {
         lastSeen: new Date().toISOString(),
       };
 
-      // If schedule is active, set manual override until next boundary
-      const scheduleStatus = getScheduleStatus(device);
-      if (scheduleStatus === 'active' && device.override?.schedule?.enabled) {
-        const boundary = getNextScheduleBoundary(device);
-        if (boundary) {
-          update(ref(rtdb, `devices/${deviceId}/override`), {
-            manualOverrideUntil: boundary,
-          });
+      // If in scheduled mode and schedule is active, set manual override until next boundary
+      if (device.controlMode === 'scheduled') {
+        const scheduleStatus = getScheduleStatus(device);
+        if (scheduleStatus === 'active' && device.override?.schedule?.enabled) {
+          const boundary = getNextScheduleBoundary(device);
+          if (boundary) {
+            update(ref(rtdb, `devices/${deviceId}/override`), {
+              manualOverrideUntil: boundary,
+            });
+          }
         }
       }
 
@@ -408,6 +413,13 @@ export function useDevices() {
     set(ref(rtdb, "settings/vecoRate"), rate);
   }, []);
 
+  const setControlMode = useCallback((deviceId: string, mode: ControlMode) => {
+    update(ref(rtdb, `devices/${deviceId}`), {
+      controlMode: mode,
+      lastSeen: new Date().toISOString(),
+    });
+  }, []);
+
   const refreshDevices = useCallback(() => {
     window.location.reload();
   }, []);
@@ -424,6 +436,7 @@ export function useDevices() {
     setBrightness,
     updateAutomation,
     setOverride,
+    setControlMode,
     addDevice,
     removeDevice,
     updateSchedule,

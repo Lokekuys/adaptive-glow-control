@@ -1,14 +1,13 @@
 import {
   Power,
-  Sun,
   Clock,
-  User,
-  Settings2,
-  AlertTriangle,
   Trash2,
+  Hand,
+  Calendar,
+  Brain,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SmartPlug, AutomationSettings, ScheduleEntry } from "@/types/device";
+import { SmartPlug, AutomationSettings, ScheduleEntry, ControlMode } from "@/types/device";
 import { Button } from "@/components/ui/button";
 import { ScheduleEditor } from "./ScheduleEditor";
 import { Switch } from "@/components/ui/switch";
@@ -57,7 +56,14 @@ interface DeviceDetailPanelProps {
   onOverride: (deviceId: string, active: boolean, permanent: boolean) => void;
   onRemove: (deviceId: string) => void;
   onScheduleChange: (deviceId: string, schedule: ScheduleEntry) => void;
+  onControlModeChange: (deviceId: string, mode: ControlMode) => void;
 }
+
+const CONTROL_MODES: { value: ControlMode; label: string; icon: typeof Hand; description: string }[] = [
+  { value: 'manual', label: 'Manual', icon: Hand, description: 'Direct ON/OFF control' },
+  { value: 'scheduled', label: 'Scheduled', icon: Calendar, description: 'Follow time schedule' },
+  { value: 'smart', label: 'Smart', icon: Brain, description: 'Occupancy automation' },
+];
 
 export function DeviceDetailPanel({
   device,
@@ -69,6 +75,7 @@ export function DeviceDetailPanel({
   onOverride,
   onRemove,
   onScheduleChange,
+  onControlModeChange,
 }: DeviceDetailPanelProps) {
   if (!device) return null;
 
@@ -79,7 +86,7 @@ export function DeviceDetailPanel({
     autoOffDelaySeconds: 300,
     adaptiveLightingEnabled: false,
   };
-  const override = device.override ?? { active: false, permanent: false };
+  const controlMode = device.controlMode ?? 'manual';
 
   const totalSeconds = automationSettings.autoOffDelaySeconds ?? 300;
   const autoOffHours = Math.floor(totalSeconds / 3600);
@@ -99,6 +106,12 @@ export function DeviceDetailPanel({
     onRemove(device.id);
     onClose();
   };
+
+  // Schedule summary for display
+  const schedule = device.override?.schedule;
+  const scheduleSummary = schedule?.enabled && schedule.days?.length
+    ? `${schedule.days.join(', ')} • ${schedule.startTime} – ${schedule.endTime}`
+    : null;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -137,8 +150,39 @@ export function DeviceDetailPanel({
             />
           </div>
 
-          {/* Schedule Status Badge */}
-          {scheduleLabel && (
+          <Separator />
+
+          {/* Control Mode Selector */}
+          <div className="space-y-3">
+            <Label className="font-medium">Control Mode</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {CONTROL_MODES.map((mode) => {
+                const Icon = mode.icon;
+                const isActive = controlMode === mode.value;
+                return (
+                  <button
+                    key={mode.value}
+                    onClick={() => onControlModeChange(device.id, mode.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center",
+                      isActive
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-transparent bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-xs font-semibold">{mode.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {CONTROL_MODES.find((m) => m.value === controlMode)?.description}
+            </p>
+          </div>
+
+          {/* Schedule Status Badge (shown in scheduled mode) */}
+          {controlMode === 'scheduled' && scheduleLabel && (
             <Badge variant="outline" className={cn(
               'text-xs w-fit',
               scheduleStatus === 'active' ? 'text-energy border-energy/30' : 'text-muted-foreground border-muted-foreground/30'
@@ -147,26 +191,96 @@ export function DeviceDetailPanel({
             </Badge>
           )}
 
+          {/* Schedule Editor (shown in scheduled mode) */}
+          {controlMode === 'scheduled' && (
+            <div className="space-y-2">
+              <ScheduleEditor
+                schedule={device.override?.schedule}
+                onChange={(schedule) => onScheduleChange(device.id, schedule)}
+              />
+              {scheduleSummary && (
+                <p className="text-xs text-muted-foreground px-1">
+                  📅 {scheduleSummary}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Smart Mode Settings (shown in smart mode) */}
+          {controlMode === 'smart' && (
+            <div className="space-y-4">
+              <Label className="font-medium">Occupancy Automation</Label>
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                <Label>Auto-Off on Vacancy</Label>
+                <Switch
+                  checked={automationSettings.occupancyControlEnabled}
+                  onCheckedChange={(checked) => onAutomationChange(device.id, { occupancyControlEnabled: checked })}
+                />
+              </div>
+
+              {automationSettings.occupancyControlEnabled && (
+                <div className="space-y-3 p-3 rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <Label>Auto-Off Delay</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={23}
+                        value={autoOffHours}
+                        onChange={(e) => handleTimeChange(parseInt(e.target.value) || 0, autoOffMinutes)}
+                        className="w-16 text-center font-mono"
+                      />
+                      <span className="text-sm text-muted-foreground">h</span>
+                    </div>
+                    <span className="text-muted-foreground font-bold">:</span>
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        value={autoOffMinutes}
+                        onChange={(e) => handleTimeChange(autoOffHours, parseInt(e.target.value) || 0)}
+                        className="w-16 text-center font-mono"
+                      />
+                      <span className="text-sm text-muted-foreground">m</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Device turns off after {autoOffHours > 0 ? `${autoOffHours}h ` : ""}{autoOffMinutes}m of vacancy
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Brightness - always shown, visually dimmed when off */}
           {device.classification?.pwmCompatible && (
-            <div className={cn("space-y-3 p-4 rounded-xl border", !device.isOn && "opacity-60")}>
-              <div className="flex items-center justify-between">
-                <Label className="font-medium">Brightness</Label>
-                <span className="text-sm font-mono text-muted-foreground">{device.brightness ?? 0}%</span>
+            <>
+              <Separator />
+              <div className={cn("space-y-3 p-4 rounded-xl border", !device.isOn && "opacity-60")}>
+                <div className="flex items-center justify-between">
+                  <Label className="font-medium">Brightness</Label>
+                  <span className="text-sm font-mono text-muted-foreground">{device.brightness ?? 0}%</span>
+                </div>
+                <Slider
+                  value={[device.brightness ?? 0]}
+                  onValueChange={([value]) => onBrightnessChange(device.id, value)}
+                  max={100}
+                  min={0}
+                  step={5}
+                />
               </div>
-              <Slider
-                value={[device.brightness ?? 0]}
-                onValueChange={([value]) => onBrightnessChange(device.id, value)}
-                max={100}
-                min={0}
-                step={5}
-              />
-            </div>
+            </>
           )}
 
           <Separator />
 
-          {/* Sensor Readings - always shown */}
+          {/* Sensor Readings */}
           <div className="space-y-3">
             <OccupancyDisplay status={sensorData.occupancy} />
             <LightLevelDisplay lux={sensorData.lightLevel} />
@@ -175,85 +289,7 @@ export function DeviceDetailPanel({
 
           <Separator />
 
-          {/* Automation - always shown */}
-          <div className="space-y-4">
-            <Label className="font-medium">Automation</Label>
-
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
-              <Label>Occupancy Control</Label>
-              <Switch
-                checked={automationSettings.occupancyControlEnabled}
-                onCheckedChange={(checked) => onAutomationChange(device.id, { occupancyControlEnabled: checked })}
-              />
-            </div>
-
-            {automationSettings.occupancyControlEnabled && (
-              <div className="space-y-3 p-3 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <Label>Auto-Off Delay</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={23}
-                      value={autoOffHours}
-                      onChange={(e) => handleTimeChange(parseInt(e.target.value) || 0, autoOffMinutes)}
-                      className="w-16 text-center font-mono"
-                    />
-                    <span className="text-sm text-muted-foreground">h</span>
-                  </div>
-                  <span className="text-muted-foreground font-bold">:</span>
-                  <div className="flex items-center gap-1.5">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={59}
-                      value={autoOffMinutes}
-                      onChange={(e) => handleTimeChange(autoOffHours, parseInt(e.target.value) || 0)}
-                      className="w-16 text-center font-mono"
-                    />
-                    <span className="text-sm text-muted-foreground">m</span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Device turns off after {autoOffHours > 0 ? `${autoOffHours}h ` : ""}{autoOffMinutes}m of vacancy
-                </p>
-              </div>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Override - always shown */}
-          <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
-            <Label className="font-medium">Manual Override</Label>
-            <Switch
-              checked={override.active}
-              onCheckedChange={(checked) => {
-                onOverride(device.id, checked, override.permanent);
-                if (checked) {
-                  onAutomationChange(device.id, { occupancyControlEnabled: false });
-                } else {
-                  onAutomationChange(device.id, { occupancyControlEnabled: true });
-                }
-              }}
-            />
-          </div>
-
-          {/* Schedule - always shown when override is active */}
-          {override.active && (
-            <ScheduleEditor
-              schedule={device.override?.schedule}
-              onChange={(schedule) => onScheduleChange(device.id, schedule)}
-            />
-          )}
-
-          <Separator />
-
-          {/* Power Stats - always shown */}
+          {/* Power Stats */}
           <div className="p-4 rounded-xl bg-muted">
             <Label className="text-sm">Today's Usage</Label>
             <div className="flex items-baseline gap-1">
