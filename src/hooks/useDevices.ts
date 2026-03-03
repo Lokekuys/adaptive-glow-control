@@ -113,6 +113,7 @@ export function useDevices() {
   const [dailyUsage] = useState<DailyUsage[]>([]);
   const [dailyPowerData] = useState(generateDailyData);
   const [monthlyPowerData] = useState(generateMonthlyData);
+  const [sharedSensorData, setSharedSensorData] = useState<{ occupancy: string; lightLevel: number } | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
     espNowConnected: true,
     wifiConnected: true,
@@ -127,8 +128,22 @@ export function useDevices() {
       if (snapshot.exists()) {
         setVecoRate(snapshot.val());
       } else {
-        // Seed default rate
         set(rateRef, 12.79);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Listen to shared sensor box (OccupancyPlug)
+  useEffect(() => {
+    const sensorRef = ref(rtdb, "OccupancyPlug");
+    const unsubscribe = onValue(sensorRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setSharedSensorData({
+          occupancy: data.occupancy ?? "unknown",
+          lightLevel: data.lux ?? data.lightLevel ?? 0,
+        });
       }
     });
     return () => unsubscribe();
@@ -148,8 +163,8 @@ export function useDevices() {
             controlMode: d.controlMode ?? 'manual',
 
             sensorData: {
-              occupancy: d.sensorData?.occupancy ?? "vacant",
-              lightLevel: d.sensorData?.lightLevel ?? 0,
+              occupancy: sharedSensorData?.occupancy ?? d.sensorData?.occupancy ?? "vacant",
+              lightLevel: sharedSensorData?.lightLevel ?? d.sensorData?.lightLevel ?? 0,
               lastUpdated: d.sensorData?.lastUpdated
                 ? new Date(d.sensorData.lastUpdated)
                 : new Date(),
@@ -213,7 +228,7 @@ export function useDevices() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [sharedSensorData]);
 
   /* ---------- AUTO-OFF TIMER LOGIC ---------- */
   const vacancyTimers = useRef<Record<string, NodeJS.Timeout>>({});
