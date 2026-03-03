@@ -243,12 +243,34 @@ export function useDevices() {
         isOn,
         sensorData,
         automationSettings: auto,
-        override,
+        controlMode,
       } = device;
 
+      if (controlMode !== 'smart') {
+        // Not in smart mode — cancel any pending timer
+        if (vacancyTimers.current[id]) {
+          clearTimeout(vacancyTimers.current[id]);
+          delete vacancyTimers.current[id];
+          setCountdowns((prev) => {
+            const next = { ...prev };
+            delete next[id];
+            return next;
+          });
+        }
+        return;
+      }
+
+      // Smart mode: auto-ON when occupied
+      if (!isOn && sensorData.occupancy === "occupied") {
+        update(ref(rtdb, `devices/${id}`), {
+          isOn: true,
+          lastSeen: new Date().toISOString(),
+        });
+      }
+
+      // Smart mode: start auto-OFF countdown when vacant
       const shouldAutoOff =
         isOn &&
-        device.controlMode === 'smart' &&
         auto.occupancyControlEnabled &&
         sensorData.occupancy === "vacant";
 
@@ -258,7 +280,6 @@ export function useDevices() {
 
         setCountdowns((prev) => ({ ...prev, [id]: endsAt }));
 
-        // Start countdown
         vacancyTimers.current[id] = setTimeout(() => {
           update(ref(rtdb, `devices/${id}`), {
             isOn: false,
@@ -272,7 +293,7 @@ export function useDevices() {
           });
         }, delayMs);
       } else if (!shouldAutoOff && vacancyTimers.current[id]) {
-        // Cancel timer (occupied again, turned off, or override active)
+        // Cancel timer (occupied again or turned off)
         clearTimeout(vacancyTimers.current[id]);
         delete vacancyTimers.current[id];
         setCountdowns((prev) => {
