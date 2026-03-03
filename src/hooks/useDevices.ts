@@ -134,15 +134,15 @@ export function useDevices() {
     return () => unsubscribe();
   }, []);
 
-  // Listen to shared sensor box (OccupancyPlug)
+  // Listen to shared sensor box (OccupancyPlug/sensorBox)
   useEffect(() => {
-    const sensorRef = ref(rtdb, "OccupancyPlug");
+    const sensorRef = ref(rtdb, "OccupancyPlug/sensorBox");
     const unsubscribe = onValue(sensorRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         setSharedSensorData({
-          occupancy: data.occupancy ?? "unknown",
-          lightLevel: data.lux ?? data.lightLevel ?? 0,
+          occupancy: data.presence === true ? "occupied" : "vacant",
+          lightLevel: data.lux ?? 0,
         });
       }
     });
