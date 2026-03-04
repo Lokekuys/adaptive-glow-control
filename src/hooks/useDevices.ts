@@ -114,6 +114,7 @@ export function useDevices() {
   const [dailyPowerData] = useState(generateDailyData);
   const [monthlyPowerData] = useState(generateMonthlyData);
   const [sharedSensorData, setSharedSensorData] = useState<{ occupancy: string; lightLevel: number } | null>(null);
+  const sharedSensorRef = useRef<{ occupancy: string; lightLevel: number } | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
     espNowConnected: true,
     wifiConnected: true,
@@ -140,10 +141,12 @@ export function useDevices() {
     const unsubscribe = onValue(sensorRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
-        setSharedSensorData({
+        const parsed = {
           occupancy: data.presence === true ? "occupied" : "vacant",
           lightLevel: data.lux ?? 0,
-        });
+        };
+        sharedSensorRef.current = parsed;
+        setSharedSensorData(parsed);
       }
     });
     return () => unsubscribe();
@@ -163,8 +166,8 @@ export function useDevices() {
             controlMode: d.controlMode ?? 'manual',
 
             sensorData: {
-              occupancy: sharedSensorData?.occupancy ?? d.sensorData?.occupancy ?? "vacant",
-              lightLevel: sharedSensorData?.lightLevel ?? d.sensorData?.lightLevel ?? 0,
+              occupancy: sharedSensorRef.current?.occupancy ?? d.sensorData?.occupancy ?? "vacant",
+              lightLevel: sharedSensorRef.current?.lightLevel ?? d.sensorData?.lightLevel ?? 0,
               lastUpdated: d.sensorData?.lastUpdated
                 ? new Date(d.sensorData.lastUpdated)
                 : new Date(),
@@ -228,6 +231,22 @@ export function useDevices() {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  // Re-merge sensor data into devices when sharedSensorData changes
+  useEffect(() => {
+    if (!sharedSensorData) return;
+    setDevices((prev) => {
+      if (!prev) return prev;
+      return prev.map((d) => ({
+        ...d,
+        sensorData: {
+          ...d.sensorData,
+          occupancy: sharedSensorData.occupancy as any,
+          lightLevel: sharedSensorData.lightLevel,
+        },
+      }));
+    });
   }, [sharedSensorData]);
 
   /* ---------- AUTO-OFF TIMER LOGIC ---------- */
