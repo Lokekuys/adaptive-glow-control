@@ -1,28 +1,29 @@
 
 
-# Fix: Sensor Data Not Flowing to Devices
+# Fix: Scheduled Mode Not Enforcing ON/OFF Times
 
 ## Problem
-The devices `onValue` listener on line 153 depends on `sharedSensorData` in its dependency array. This means:
-1. On first render, `sharedSensorData` is `null` → devices load with fallback mock values
-2. When the sensor listener fires and sets `sharedSensorData`, the devices `useEffect` **re-subscribes** — it unsubscribes and creates a new `onValue` listener, which causes a full re-fetch
-3. This works in theory, but the closure-based approach is fragile and can miss updates if timing is off
+The current schedule logic (line 376) only turns a device OFF when it's a scheduled day AND past the end time. It fails to turn OFF when:
+- It's not a scheduled day at all
+- It's a scheduled day but before the start time
+- The device was already ON when switching to scheduled mode outside the window
 
 ## Fix
-Instead of re-subscribing the devices listener every time sensor data changes, **decouple** them:
+In `src/hooks/useDevices.ts`, simplify the turn-off condition: if the device is in `scheduled` mode with an active schedule, and it's **not** inside the active window, turn it OFF. Replace the overly restrictive `!inWindow && device.isOn && isScheduledDay && currentMinutes >= endMinutes` with simply `!inWindow && device.isOn`.
 
-1. **Remove `sharedSensorData` from the devices `useEffect` dependency array**
-2. **Use a `useRef` for shared sensor data** so the devices mapping always reads the latest value without triggering re-subscriptions
-3. **Add a separate `useEffect` that re-merges sensor data into existing devices** when `sharedSensorData` changes — this updates `devices` state directly without re-subscribing to Firebase
+### Change in `src/hooks/useDevices.ts` (line 376)
+```typescript
+// Before:
+} else if (!inWindow && device.isOn && isScheduledDay && currentMinutes >= endMinutes) {
 
-### Changes in `src/hooks/useDevices.ts`
-
-- Add `const sharedSensorRef = useRef(sharedSensorData)` and keep it synced
-- In the devices `onValue` callback, read from `sharedSensorRef.current` instead of the stale closure
-- Add a new `useEffect` watching `sharedSensorData` that updates the existing `devices` state in-place (re-maps sensor fields) — so when sensor data arrives or changes, devices update immediately without re-subscribing
+// After:
+} else if (!inWindow && device.isOn) {
+```
 
 This ensures:
-- Devices listener subscribes **once**
-- Sensor data is always the latest value when devices are mapped
-- When sensor data changes independently, devices state is updated immediately
+- Device turns ON only during the scheduled window
+- Device turns OFF at any time outside the window (wrong day, before start, after end)
+- Manual override still respected via `manualOverrideUntil`
+
+Single line change in one file.
 
