@@ -1,40 +1,28 @@
 
 
-# Read Real Sensor Data from Firebase OccupancyPlug Collection
+# Fix: Sensor Data Not Flowing to Devices
 
-## Current State
-- Sensor data (occupancy, lightLevel) is stored per-device under `devices/{id}/sensorData` with mock/default values
-- No connection to real hardware sensor data
+## Problem
+The devices `onValue` listener on line 153 depends on `sharedSensorData` in its dependency array. This means:
+1. On first render, `sharedSensorData` is `null` → devices load with fallback mock values
+2. When the sensor listener fires and sets `sharedSensorData`, the devices `useEffect` **re-subscribes** — it unsubscribes and creates a new `onValue` listener, which causes a full re-fetch
+3. This works in theory, but the closure-based approach is fragile and can miss updates if timing is off
 
-## What Changes
+## Fix
+Instead of re-subscribing the devices listener every time sensor data changes, **decouple** them:
 
-Since there is one shared sensor box, the app will listen to `OccupancyPlug/` in Firebase RTDB for real-time lux and occupancy values, and apply them to **all** devices.
+1. **Remove `sharedSensorData` from the devices `useEffect` dependency array**
+2. **Use a `useRef` for shared sensor data** so the devices mapping always reads the latest value without triggering re-subscriptions
+3. **Add a separate `useEffect` that re-merges sensor data into existing devices** when `sharedSensorData` changes — this updates `devices` state directly without re-subscribing to Firebase
 
-### 1. Add a shared sensor listener in `useDevices.ts`
-- Subscribe to `ref(rtdb, "OccupancyPlug")` with `onValue`
-- Extract `lux` (or `lightLevel`) and `occupancy` fields from the snapshot
-- Store in a `sharedSensorData` state: `{ occupancy, lightLevel }`
-- When this data updates, write it back to each device's `sensorData` path in Firebase so the existing device model stays consistent
-- Alternatively (cleaner): keep `sharedSensorData` as a separate state and merge it into each device object in-memory without writing back — the device cards and detail panel already read from `device.sensorData`
+### Changes in `src/hooks/useDevices.ts`
 
-### 2. Merge shared sensor data into device objects
-- In the `onValue` callback for devices, overlay the shared sensor values onto each device's `sensorData`
-- This means all devices will show the same real occupancy and lux readings from the single sensor box
+- Add `const sharedSensorRef = useRef(sharedSensorData)` and keep it synced
+- In the devices `onValue` callback, read from `sharedSensorRef.current` instead of the stale closure
+- Add a new `useEffect` watching `sharedSensorData` that updates the existing `devices` state in-place (re-maps sensor fields) — so when sensor data arrives or changes, devices update immediately without re-subscribing
 
-### 3. No UI changes needed
-- `OccupancyDisplay`, `LightLevelDisplay`, `DeviceCard`, and `DeviceDetailPanel` already display `sensorData.occupancy` and `sensorData.lightLevel` — they will automatically show real data once the source changes
-
-### 4. Smart mode auto-off uses real occupancy
-- The existing auto-off timer logic in `useDevices.ts` already reads `sensorData.occupancy` — once real values flow in, smart mode will react to actual occupancy changes
-
-### Technical Details
-
-**Firebase path assumed:** `OccupancyPlug/lux` and `OccupancyPlug/occupancy` (flat structure). If the field names differ, they will be mapped accordingly.
-
-**File changes:**
-| File | Change |
-|------|--------|
-| `src/hooks/useDevices.ts` | Add `useEffect` subscribing to `OccupancyPlug` ref; merge real sensor data into each device's `sensorData` in the devices state |
-
-This is a single-file change — the sensor display components and automation logic require no modifications.
+This ensures:
+- Devices listener subscribes **once**
+- Sensor data is always the latest value when devices are mapped
+- When sensor data changes independently, devices state is updated immediately
 
