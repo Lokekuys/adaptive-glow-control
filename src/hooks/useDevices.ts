@@ -373,7 +373,7 @@ export function useDevices() {
             isOn: true,
             lastSeen: new Date().toISOString(),
           });
-        } else if (!inWindow && device.isOn && isScheduledDay && currentMinutes >= endMinutes) {
+        } else if (!inWindow && device.isOn) {
           update(ref(rtdb, `devices/${device.id}`), {
             isOn: false,
             lastSeen: new Date().toISOString(),
