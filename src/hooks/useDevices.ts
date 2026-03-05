@@ -142,7 +142,7 @@ export function useDevices() {
       if (snapshot.exists()) {
         const data = snapshot.val();
         const parsed = {
-          occupancy: data.presence === true ? "occupied" : "vacant",
+          occupancy: data.presence?.detected === true ? "occupied" : "vacant",
           lightLevel: data.lux ?? 0,
         };
         sharedSensorRef.current = parsed;
