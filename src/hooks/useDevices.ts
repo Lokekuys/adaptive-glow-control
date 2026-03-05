@@ -284,6 +284,7 @@ export function useDevices() {
         update(ref(rtdb, `devices/${id}`), {
           isOn: true,
           lastSeen: new Date().toISOString(),
+          turnedOnAt: new Date().toISOString(),
         });
       }
 
@@ -303,6 +304,7 @@ export function useDevices() {
           update(ref(rtdb, `devices/${id}`), {
             isOn: false,
             lastSeen: new Date().toISOString(),
+            turnedOnAt: null,
           });
           delete vacancyTimers.current[id];
           setCountdowns((prev) => {
@@ -372,11 +374,13 @@ export function useDevices() {
           update(ref(rtdb, `devices/${device.id}`), {
             isOn: true,
             lastSeen: new Date().toISOString(),
+            turnedOnAt: new Date().toISOString(),
           });
         } else if (!inWindow && device.isOn) {
           update(ref(rtdb, `devices/${device.id}`), {
             isOn: false,
             lastSeen: new Date().toISOString(),
+            turnedOnAt: null,
           });
         }
       });
@@ -394,9 +398,11 @@ export function useDevices() {
       const device = devices?.find((d) => d.id === deviceId);
       if (!device) return;
 
+      const newIsOn = !device.isOn;
       const updates: Record<string, any> = {
-        isOn: !device.isOn,
+        isOn: newIsOn,
         lastSeen: new Date().toISOString(),
+        turnedOnAt: newIsOn ? new Date().toISOString() : null,
       };
 
       // If in scheduled mode and schedule is active, set manual override until next boundary

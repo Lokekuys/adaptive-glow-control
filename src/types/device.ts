@@ -66,6 +66,7 @@ export interface SmartPlug {
   automationSettings: AutomationSettings;
   override: DeviceOverride;
   lastSeen: Date;
+  turnedOnAt?: string; // ISO timestamp when device was turned on
 }
 
 export interface PowerUsageEntry {
