@@ -1,10 +1,8 @@
 import { useState } from "react";
 import {
   Plug,
-  Zap,
   User,
   Sun,
-  Shield,
   LogOut,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -71,11 +69,6 @@ const Index = () => {
   };
 
   // 📊 SAFE SUMMARY CALCULATIONS
-  const totalPower = devices.reduce(
-    (sum, d) => sum + (d.isOn ? d.powerData?.currentWatts ?? 0 : 0),
-    0
-  );
-
   const occupiedCount = devices.filter(
     (d) => d.sensorData?.occupancy === "occupied"
   ).length;
@@ -124,17 +117,7 @@ const Index = () => {
         )}
 
         {/* SUMMARY CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <Zap className="w-5 h-5 text-sensor-power" />
-              <div>
-                <span className="data-label">Total Power</span>
-                <div className="font-bold">{totalPower.toFixed(0)} W</div>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="grid grid-cols-2 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <User className="w-5 h-5 text-occupied" />
@@ -155,16 +138,6 @@ const Index = () => {
                 <div className="font-bold">
                   {automatedCount}/{devices.length}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <Shield className="w-5 h-5 text-primary" />
-              <div>
-                <span className="data-label">Safety Mode</span>
-                <div className="font-bold text-energy">Active</div>
               </div>
             </CardContent>
           </Card>

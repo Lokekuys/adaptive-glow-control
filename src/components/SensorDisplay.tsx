@@ -1,4 +1,5 @@
-import { User, Sun, Zap, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Sun, Zap, AlertTriangle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { OccupancyStatus } from '@/types/device';
 
@@ -109,6 +110,63 @@ export function PowerDisplay({ watts, isAbnormal = false, compact = false }: Pow
             <span className="ml-1 text-xs text-warning font-medium">Abnormal</span>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+interface OnDurationDisplayProps {
+  turnedOnAt?: string;
+  isOn: boolean;
+  compact?: boolean;
+}
+
+function formatDuration(ms: number): string {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m`;
+  if (m > 0) return `${m}m ${s.toString().padStart(2, '0')}s`;
+  return `${s}s`;
+}
+
+export function OnDurationDisplay({ turnedOnAt, isOn, compact = false }: OnDurationDisplayProps) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!isOn || !turnedOnAt) {
+      setElapsed(0);
+      return;
+    }
+    const start = new Date(turnedOnAt).getTime();
+    const tick = () => setElapsed(Math.max(0, Date.now() - start));
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [isOn, turnedOnAt]);
+
+  return (
+    <div className={cn(
+      'flex items-center gap-2 rounded-lg transition-colors',
+      compact ? 'p-2' : 'p-3',
+      isOn ? 'bg-energy/10' : 'bg-muted'
+    )}>
+      <div className={cn(
+        'flex items-center justify-center rounded-full p-1.5',
+        isOn ? 'bg-energy/20 text-energy' : 'bg-muted-foreground/20 text-muted-foreground'
+      )}>
+        <Clock className={compact ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
+      </div>
+      <div className="flex flex-col">
+        <span className="data-label">On Duration</span>
+        <span className={cn(
+          'font-mono font-semibold',
+          compact ? 'text-sm' : 'text-base',
+          isOn ? 'text-energy' : 'text-muted-foreground'
+        )}>
+          {isOn && turnedOnAt ? formatDuration(elapsed) : 'Off'}
+        </span>
       </div>
     </div>
   );

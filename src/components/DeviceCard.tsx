@@ -10,7 +10,7 @@ import { PowerIndicator } from './PowerIndicator';
 import {
   OccupancyDisplay,
   LightLevelDisplay,
-  PowerDisplay,
+  OnDurationDisplay,
 } from './SensorDisplay';
 import { Badge } from '@/components/ui/badge';
 import { CountdownTimer } from './CountdownTimer';
@@ -114,7 +114,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
           <LightLevelDisplay lux={sensorData.lightLevel} compact />
         </div>
 
-        <PowerDisplay watts={device.isOn ? powerData.currentWatts : 0} isAbnormal={powerData.isAbnormal} compact />
+        <OnDurationDisplay turnedOnAt={device.turnedOnAt} isOn={device.isOn} compact />
 
         {countdownEndsAt && <div className="mt-2"><CountdownTimer endsAt={countdownEndsAt} /></div>}
 
