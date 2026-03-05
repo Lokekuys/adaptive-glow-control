@@ -1,29 +1,32 @@
 
 
-# Fix: Scheduled Mode Not Enforcing ON/OFF Times
+# Remove Cards & Replace Power Usage with Uptime Display
 
-## Problem
-The current schedule logic (line 376) only turns a device OFF when it's a scheduled day AND past the end time. It fails to turn OFF when:
-- It's not a scheduled day at all
-- It's a scheduled day but before the start time
-- The device was already ON when switching to scheduled mode outside the window
+## Changes
 
-## Fix
-In `src/hooks/useDevices.ts`, simplify the turn-off condition: if the device is in `scheduled` mode with an active schedule, and it's **not** inside the active window, turn it OFF. Replace the overly restrictive `!inWindow && device.isOn && isScheduledDay && currentMinutes >= endMinutes` with simply `!inWindow && device.isOn`.
+### 1. Remove Total Power and Safety Mode summary cards (Index.tsx)
+Remove the "Total Power" card and "Safety Mode" card from the summary grid. Keep "Occupied Zones" and "Auto-Controlled" cards, and adjust the grid to `grid-cols-2`.
 
-### Change in `src/hooks/useDevices.ts` (line 376)
-```typescript
-// Before:
-} else if (!inWindow && device.isOn && isScheduledDay && currentMinutes >= endMinutes) {
+### 2. Track device on-duration in Firebase (useDevices.ts + device.ts)
+- Add `turnedOnAt?: string` (ISO timestamp) to the `SmartPlug` type
+- When a device is toggled ON (or turned on by schedule/smart mode), write `turnedOnAt: new Date().toISOString()` to Firebase
+- When toggled OFF, clear `turnedOnAt` to `null`
 
-// After:
-} else if (!inWindow && device.isOn) {
-```
+### 3. Replace PowerDisplay with uptime display on DeviceCard (DeviceCard.tsx)
+- Remove the `<PowerDisplay>` component from the card
+- Replace it with a new "On Duration" display that calculates elapsed time from `device.turnedOnAt` to now
+- Show formatted duration (e.g., "2h 15m" or "45m 12s") using a simple interval-based timer
+- Show "Off" when the device is not on
 
-This ensures:
-- Device turns ON only during the scheduled window
-- Device turns OFF at any time outside the window (wrong day, before start, after end)
-- Manual override still respected via `manualOverrideUntil`
+### 4. Create OnDurationDisplay component (SensorDisplay.tsx or new file)
+- Accepts `turnedOnAt?: string` and `isOn: boolean`
+- Uses `useState` + `setInterval` (every second) to update the displayed duration
+- Styled consistently with existing sensor displays (icon + label + value)
 
-Single line change in one file.
+## Files to modify
+- `src/types/device.ts` — add `turnedOnAt` field
+- `src/hooks/useDevices.ts` — set/clear `turnedOnAt` on toggle and automation actions
+- `src/components/DeviceCard.tsx` — replace `PowerDisplay` with uptime display
+- `src/components/SensorDisplay.tsx` — add `OnDurationDisplay` component
+- `src/pages/Index.tsx` — remove Total Power and Safety Mode cards
 
