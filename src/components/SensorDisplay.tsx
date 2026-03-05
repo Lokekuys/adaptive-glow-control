@@ -56,7 +56,7 @@ export function LightLevelDisplay({ lux, compact = false }: LightLevelDisplayPro
         <span className="data-label">Light Level</span>
         <div className="flex items-baseline gap-1">
           <span className={cn('font-mono font-semibold', compact ? 'text-sm' : 'text-base')}>
-            {lux}
+            {lux % 1 === 0 ? lux : lux.toFixed(2)}
           </span>
           <span className="text-xs text-muted-foreground">lux</span>
           <span className={cn(
