@@ -100,7 +100,7 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
                   : 'bg-background text-muted-foreground border border-border hover:bg-accent hover:text-foreground'
               )}
             >
-              {day.charAt(0)}
+              {DAY_SHORT_LABELS[day]}
             </button>
           ))}
         </div>
