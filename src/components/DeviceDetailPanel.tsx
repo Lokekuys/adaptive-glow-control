@@ -77,6 +77,8 @@ export function DeviceDetailPanel({
   onScheduleChange,
   onControlModeChange,
 }: DeviceDetailPanelProps) {
+  const [showToggleWarning, setShowToggleWarning] = React.useState(false);
+
   if (!device) return null;
 
   const sensorData = device.sensorData ?? { occupancy: "vacant", lightLevel: 0 };
