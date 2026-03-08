@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   OccupancyDisplay,
   LightLevelDisplay,
-  PowerDisplay,
+  OnDurationDisplay,
 } from "./SensorDisplay";
 import {
   Sheet,
@@ -275,18 +275,7 @@ export function DeviceDetailPanel({
           <div className="space-y-3">
             <OccupancyDisplay status={sensorData.occupancy} />
             <LightLevelDisplay lux={sensorData.lightLevel} />
-            <PowerDisplay watts={device.isOn ? powerData.currentWatts : 0} isAbnormal={powerData.isAbnormal} />
-          </div>
-
-          <Separator />
-
-          {/* Power Stats */}
-          <div className="p-4 rounded-xl bg-muted">
-            <Label className="text-sm">Today's Usage</Label>
-            <div className="flex items-baseline gap-1">
-              <span className="text-lg font-bold">{(powerData.todayKwh ?? 0).toFixed(2)}</span>
-              <span className="text-sm text-muted-foreground">kWh</span>
-            </div>
+            <OnDurationDisplay turnedOnAt={device.turnedOnAt} isOn={device.isOn} />
           </div>
 
           <Separator />
