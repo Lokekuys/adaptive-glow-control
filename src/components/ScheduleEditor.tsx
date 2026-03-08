@@ -10,6 +10,9 @@ import { ScheduleStatus } from '@/lib/scheduleUtils';
 
 const ALL_DAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const WEEKDAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+const DAY_SHORT_LABELS: Record<DayOfWeek, string> = {
+  Mon: 'M', Tue: 'T', Wed: 'W', Thu: 'Th', Fri: 'F', Sat: 'Sa', Sun: 'Su',
+};
 
 interface ScheduleEditorProps {
   schedule?: ScheduleEntry;
@@ -97,7 +100,7 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
                   : 'bg-background text-muted-foreground border border-border hover:bg-accent hover:text-foreground'
               )}
             >
-              {day.charAt(0)}
+              {DAY_SHORT_LABELS[day]}
             </button>
           ))}
         </div>
