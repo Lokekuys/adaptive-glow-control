@@ -34,12 +34,13 @@ export function getScheduleLabel(status: ScheduleStatus): string | null {
   }
 }
 
-/** Returns ISO string of the next schedule boundary (start or end) for today */
+/** Returns ISO string of the next schedule boundary, accounting for scheduled days */
 export function getNextScheduleBoundary(device: SmartPlug): string | null {
   const schedule = device.override?.schedule;
-  if (!schedule?.startTime || !schedule?.endTime) return null;
+  if (!schedule?.startTime || !schedule?.endTime || !schedule?.days?.length) return null;
 
   const now = new Date();
+  const currentDay = DAY_MAP[now.getDay()];
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   const [startH, startM] = schedule.startTime.split(':').map(Number);
@@ -47,20 +48,31 @@ export function getNextScheduleBoundary(device: SmartPlug): string | null {
   const startMinutes = startH * 60 + startM;
   const endMinutes = endH * 60 + endM;
 
-  let targetMinutes: number;
-  if (currentMinutes < startMinutes) {
-    targetMinutes = startMinutes;
-  } else if (currentMinutes < endMinutes) {
-    targetMinutes = endMinutes;
-  } else {
-    // Past end time today — next boundary is start time tomorrow
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(startH, startM, 0, 0);
-    return tomorrow.toISOString();
+  // If today is a scheduled day and we're currently in the active window, next boundary is end time today
+  if (schedule.days.includes(currentDay) && currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+    const boundary = new Date(now);
+    boundary.setHours(endH, endM, 0, 0);
+    return boundary.toISOString();
   }
 
-  const boundary = new Date(now);
-  boundary.setHours(Math.floor(targetMinutes / 60), targetMinutes % 60, 0, 0);
-  return boundary.toISOString();
+  // Find the next scheduled day's start time
+  const ALL_DAYS: DayOfWeek[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const todayIndex = now.getDay();
+
+  for (let offset = 0; offset <= 7; offset++) {
+    const checkIndex = (todayIndex + offset) % 7;
+    const checkDay = ALL_DAYS[checkIndex];
+
+    if (!schedule.days.includes(checkDay)) continue;
+
+    // For today, only valid if start time is still ahead
+    if (offset === 0 && currentMinutes >= startMinutes) continue;
+
+    const target = new Date(now);
+    target.setDate(target.getDate() + offset);
+    target.setHours(startH, startM, 0, 0);
+    return target.toISOString();
+  }
+
+  return null;
 }
