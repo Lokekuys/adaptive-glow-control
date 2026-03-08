@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Clock, ArrowRight } from 'lucide-react';
 import { DayOfWeek, ScheduleEntry } from '@/types/device';
@@ -7,6 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ScheduleStatus } from '@/lib/scheduleUtils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const ALL_DAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const WEEKDAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -42,6 +53,8 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
     endTime: schedule?.endTime ?? '18:00',
   };
 
+  const [pendingTime, setPendingTime] = useState<Partial<ScheduleEntry> | null>(null);
+
   const updateSchedule = (patch: Partial<ScheduleEntry>) => {
     const next = { ...current, ...patch };
     if (next.startTime >= next.endTime) {
@@ -49,6 +62,22 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
       return;
     }
     onChange(next);
+  };
+
+  const handleTimeChange = (patch: Partial<ScheduleEntry>) => {
+    const next = { ...current, ...patch };
+    if (next.startTime >= next.endTime) {
+      toast.error('Start time must be before end time.');
+      return;
+    }
+    setPendingTime(patch);
+  };
+
+  const confirmTimeChange = () => {
+    if (pendingTime) {
+      onChange({ ...current, ...pendingTime });
+      setPendingTime(null);
+    }
   };
 
   const toggleDay = (day: DayOfWeek) => {
@@ -137,7 +166,7 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
             <Input
               type="time"
               value={current.startTime}
-              onChange={(e) => updateSchedule({ startTime: e.target.value })}
+              onChange={(e) => handleTimeChange({ startTime: e.target.value })}
               className="font-mono text-sm h-9 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
@@ -147,7 +176,7 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
             <Input
               type="time"
               value={current.endTime}
-              onChange={(e) => updateSchedule({ endTime: e.target.value })}
+              onChange={(e) => handleTimeChange({ endTime: e.target.value })}
               className="font-mono text-sm h-9 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
@@ -163,6 +192,26 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
           </p>
         </div>
       )}
+
+      {/* Time change confirmation dialog */}
+      <AlertDialog open={!!pendingTime} onOpenChange={(open) => !open && setPendingTime(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Update Schedule Hours?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Change active hours to{' '}
+              <span className="font-semibold text-foreground">
+                {formatTime12(pendingTime?.startTime ?? current.startTime)} – {formatTime12(pendingTime?.endTime ?? current.endTime)}
+              </span>
+              ? The device will follow the new schedule.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmTimeChange}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
