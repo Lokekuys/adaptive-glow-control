@@ -53,6 +53,8 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
     endTime: schedule?.endTime ?? '18:00',
   };
 
+  const [pendingTime, setPendingTime] = useState<Partial<ScheduleEntry> | null>(null);
+
   const updateSchedule = (patch: Partial<ScheduleEntry>) => {
     const next = { ...current, ...patch };
     if (next.startTime >= next.endTime) {
@@ -60,6 +62,22 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
       return;
     }
     onChange(next);
+  };
+
+  const handleTimeChange = (patch: Partial<ScheduleEntry>) => {
+    const next = { ...current, ...patch };
+    if (next.startTime >= next.endTime) {
+      toast.error('Start time must be before end time.');
+      return;
+    }
+    setPendingTime(patch);
+  };
+
+  const confirmTimeChange = () => {
+    if (pendingTime) {
+      onChange({ ...current, ...pendingTime });
+      setPendingTime(null);
+    }
   };
 
   const toggleDay = (day: DayOfWeek) => {
