@@ -56,30 +56,30 @@ function condenseDays(days: DayOfWeek[]): string {
 
 export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel }: ScheduleEditorProps) {
   const current: ScheduleEntry = {
-    enabled: true, // Always enabled in scheduled mode
+    enabled: true,
     days: schedule?.days ?? [],
     startTime: schedule?.startTime ?? '08:00',
     endTime: schedule?.endTime ?? '18:00',
   };
 
-  const [pendingTime, setPendingTime] = useState<Partial<ScheduleEntry> | null>(null);
+  const [timeDialogOpen, setTimeDialogOpen] = useState(false);
+  const [editStart, setEditStart] = useState(current.startTime);
+  const [editEnd, setEditEnd] = useState(current.endTime);
+  const [pendingTime, setPendingTime] = useState<{ startTime: string; endTime: string } | null>(null);
 
-  const updateSchedule = (patch: Partial<ScheduleEntry>) => {
-    const next = { ...current, ...patch };
-    if (next.startTime >= next.endTime) {
-      toast.error('Start time must be before end time.');
-      return;
-    }
-    onChange(next);
+  const openTimeDialog = () => {
+    setEditStart(current.startTime);
+    setEditEnd(current.endTime);
+    setTimeDialogOpen(true);
   };
 
-  const handleTimeChange = (patch: Partial<ScheduleEntry>) => {
-    const next = { ...current, ...patch };
-    if (next.startTime >= next.endTime) {
+  const handleTimeSave = () => {
+    if (editStart >= editEnd) {
       toast.error('Start time must be before end time.');
       return;
     }
-    setPendingTime(patch);
+    setTimeDialogOpen(false);
+    setPendingTime({ startTime: editStart, endTime: editEnd });
   };
 
   const confirmTimeChange = () => {
@@ -96,15 +96,12 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
     onChange({ ...current, days });
   };
 
-  const selectWeekdays = () => {
-    onChange({ ...current, days: [...WEEKDAYS] });
-  };
+  const selectWeekdays = () => onChange({ ...current, days: [...WEEKDAYS] });
+  const selectWeekends = () => onChange({ ...current, days: [...WEEKENDS] });
+  const selectEveryDay = () => onChange({ ...current, days: [...ALL_DAYS] });
 
-  const selectEveryDay = () => {
-    onChange({ ...current, days: [...ALL_DAYS] });
-  };
-
-  const isWeekdaysSelected = WEEKDAYS.every(d => current.days.includes(d)) && !current.days.includes('Sat') && !current.days.includes('Sun') && current.days.length === 5;
+  const isWeekdaysSelected = current.days.length === 5 && WEEKDAYS.every(d => current.days.includes(d)) && !current.days.includes('Sat') && !current.days.includes('Sun');
+  const isWeekendsSelected = current.days.length === 2 && current.days.includes('Sat') && current.days.includes('Sun');
   const isEveryDaySelected = current.days.length === 7;
 
   return (
@@ -145,51 +142,36 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
 
         {/* Quick select */}
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={isWeekdaysSelected ? "default" : "outline"}
-            size="sm"
-            className="text-xs h-7 rounded-full"
-            onClick={selectWeekdays}
-          >
+          <Button type="button" variant={isWeekdaysSelected ? "default" : "outline"} size="sm" className="text-xs h-7 rounded-full" onClick={selectWeekdays}>
             Weekdays
           </Button>
-          <Button
-            type="button"
-            variant={isEveryDaySelected ? "default" : "outline"}
-            size="sm"
-            className="text-xs h-7 rounded-full"
-            onClick={selectEveryDay}
-          >
+          <Button type="button" variant={isWeekendsSelected ? "default" : "outline"} size="sm" className="text-xs h-7 rounded-full" onClick={selectWeekends}>
+            Weekends
+          </Button>
+          <Button type="button" variant={isEveryDaySelected ? "default" : "outline"} size="sm" className="text-xs h-7 rounded-full" onClick={selectEveryDay}>
             Every day
           </Button>
         </div>
       </div>
 
-      {/* Time range */}
+      {/* Time range - tappable display */}
       <div className="space-y-2">
         <Label className="text-xs text-muted-foreground">Active hours</Label>
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-background border">
-          <div className="flex-1 space-y-1">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Start</span>
-            <Input
-              type="time"
-              value={current.startTime}
-              onChange={(e) => handleTimeChange({ startTime: e.target.value })}
-              className="font-mono text-sm h-9 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
+        <button
+          type="button"
+          onClick={openTimeDialog}
+          className="w-full flex items-center justify-center gap-3 p-4 rounded-lg bg-background border border-border hover:border-primary/50 hover:bg-accent/50 transition-all cursor-pointer"
+        >
+          <div className="text-center">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium block">Start</span>
+            <span className="text-lg font-semibold text-foreground">{formatTime12(current.startTime)}</span>
           </div>
-          <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
-          <div className="flex-1 space-y-1">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">End</span>
-            <Input
-              type="time"
-              value={current.endTime}
-              onChange={(e) => handleTimeChange({ endTime: e.target.value })}
-              className="font-mono text-sm h-9 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
+          <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0" />
+          <div className="text-center">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium block">End</span>
+            <span className="text-lg font-semibold text-foreground">{formatTime12(current.endTime)}</span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Summary bar */}
@@ -201,6 +183,39 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
           </p>
         </div>
       )}
+
+      {/* Time picker dialog */}
+      <Dialog open={timeDialogOpen} onOpenChange={setTimeDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Set Active Hours</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Start Time</Label>
+              <Input
+                type="time"
+                value={editStart}
+                onChange={(e) => setEditStart(e.target.value)}
+                className="font-mono text-lg h-12"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">End Time</Label>
+              <Input
+                type="time"
+                value={editEnd}
+                onChange={(e) => setEditEnd(e.target.value)}
+                className="font-mono text-lg h-12"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTimeDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleTimeSave}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Time change confirmation dialog */}
       <AlertDialog open={!!pendingTime} onOpenChange={(open) => !open && setPendingTime(null)}>
