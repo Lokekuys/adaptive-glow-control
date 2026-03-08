@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   OccupancyDisplay,
   LightLevelDisplay,
-  PowerDisplay,
+  OnDurationDisplay,
 } from "./SensorDisplay";
 import {
   Sheet,
