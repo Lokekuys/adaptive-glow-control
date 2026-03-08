@@ -192,29 +192,14 @@ export function DeviceDetailPanel({
             </p>
           </div>
 
-          {/* Schedule Status Badge (shown in scheduled mode) */}
-          {controlMode === 'scheduled' && scheduleLabel && (
-            <Badge variant="outline" className={cn(
-              'text-xs w-fit',
-              scheduleStatus === 'active' ? 'text-energy border-energy/30' : 'text-muted-foreground border-muted-foreground/30'
-            )}>
-              {scheduleLabel}
-            </Badge>
-          )}
-
           {/* Schedule Editor (shown in scheduled mode) */}
           {controlMode === 'scheduled' && (
-            <div className="space-y-2">
-              <ScheduleEditor
-                schedule={device.override?.schedule}
-                onChange={(schedule) => onScheduleChange(device.id, schedule)}
-              />
-              {scheduleSummary && (
-                <p className="text-xs text-muted-foreground px-1">
-                  📅 {scheduleSummary}
-                </p>
-              )}
-            </div>
+            <ScheduleEditor
+              schedule={device.override?.schedule}
+              onChange={(schedule) => onScheduleChange(device.id, schedule)}
+              scheduleStatus={scheduleStatus}
+              statusLabel={scheduleLabel}
+            />
           )}
 
           {/* Smart Mode Settings (shown in smart mode) */}
