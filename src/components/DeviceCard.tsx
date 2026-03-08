@@ -163,7 +163,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
             <AlertDialogDescription>
               {device.controlMode === 'smart'
                 ? 'This device is currently in Smart Mode. Toggling it manually will override the occupancy automation. Do you want to continue?'
-                : 'This device is currently in Scheduled Mode. Toggling it manually will override the schedule. Do you want to continue?'}
+                : 'This device is currently in Scheduled Mode. Toggling it manually will switch it to Manual Mode. Do you want to continue?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
