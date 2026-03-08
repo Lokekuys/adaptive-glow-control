@@ -29,7 +29,9 @@ export function ScheduleCountdown({ device }: ScheduleCountdownProps) {
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
 
-  const display = h > 0 ? `${h}h ${m}m` : `${m}m`;
+  const display = h >= 24
+    ? `${Math.floor(h / 24)}d ${h % 24}h`
+    : h > 0 ? `${h}h ${m}m` : `${m}m`;
   const label = status === 'active' ? `Turns off in ${display}` : `Turns on in ${display}`;
 
   return (
