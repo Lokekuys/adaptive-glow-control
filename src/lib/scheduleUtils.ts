@@ -8,7 +8,7 @@ export type ScheduleStatus = 'active' | 'outside-hours' | 'outside-days' | null;
 
 export function getScheduleStatus(device: SmartPlug): ScheduleStatus {
   const schedule = device.override?.schedule;
-  if (!schedule?.enabled || !schedule.days?.length) return null;
+  if (!schedule?.days?.length || !schedule?.startTime || !schedule?.endTime) return null;
 
   const now = new Date();
   const currentDay = DAY_MAP[now.getDay()];
