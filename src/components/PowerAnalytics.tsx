@@ -173,7 +173,9 @@ export function PowerAnalytics({ dailyData, monthlyData, vecoRate, onVecoRateCha
                       border: '1px solid hsl(var(--border))',
                       borderRadius: 'var(--radius)',
                       fontSize: '12px',
+                      color: 'hsl(var(--foreground))',
                     }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
                     formatter={(value: number) => [`${value.toFixed(2)} kWh`, 'Usage']}
                     labelFormatter={(label) => `Day: ${label}`}
                   />
