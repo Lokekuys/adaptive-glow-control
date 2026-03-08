@@ -348,7 +348,7 @@ export function useDevices() {
 
       devices.forEach((device) => {
         const schedule = device.override?.schedule;
-        if (!schedule?.enabled || !schedule.days?.length) return;
+        if (!schedule?.days?.length || !schedule?.startTime || !schedule?.endTime) return;
         if (device.controlMode !== 'scheduled') return;
 
         // Respect manual override until boundary
