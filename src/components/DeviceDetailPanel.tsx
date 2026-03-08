@@ -263,7 +263,7 @@ export function DeviceDetailPanel({
                   onValueChange={([value]) => onBrightnessChange(device.id, value)}
                   max={100}
                   min={0}
-                  step={5}
+                  step={1}
                 />
               </div>
             </>
