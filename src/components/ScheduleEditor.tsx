@@ -9,7 +9,9 @@ import { cn } from '@/lib/utils';
 import { ScheduleStatus } from '@/lib/scheduleUtils';
 
 const ALL_DAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const WEEKDAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+const DAY_SHORT_LABELS: Record<DayOfWeek, string> = {
+  Mon: 'M', Tue: 'T', Wed: 'W', Thu: 'Th', Fri: 'F', Sat: 'Sa', Sun: 'Su',
+};
 
 interface ScheduleEditorProps {
   schedule?: ScheduleEntry;
