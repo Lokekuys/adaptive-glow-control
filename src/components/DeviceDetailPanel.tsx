@@ -155,7 +155,7 @@ export function DeviceDetailPanel({
             </div>
             <Switch
               checked={device.isOn}
-              onCheckedChange={() => onToggle(device.id)}
+              onCheckedChange={handleToggle}
               disabled={!device.isOnline}
             />
           </div>
