@@ -109,6 +109,14 @@ export function DeviceDetailPanel({
     onClose();
   };
 
+  const handleToggle = () => {
+    if (device.controlMode === 'smart' || device.controlMode === 'scheduled') {
+      setShowToggleWarning(true);
+    } else {
+      onToggle(device.id);
+    }
+  };
+
   // Schedule summary for display
   const schedule = device.override?.schedule;
   const scheduleSummary = schedule?.enabled && schedule.days?.length
