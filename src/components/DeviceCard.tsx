@@ -17,6 +17,16 @@ import { CountdownTimer } from './CountdownTimer';
 import { ref, update } from 'firebase/database';
 import { rtdb } from '@/lib/firebase';
 import { getScheduleStatus, getScheduleLabel } from '@/lib/scheduleUtils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface DeviceCardProps {
   device: SmartPlug;
@@ -29,6 +39,15 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
   const [isHovered, setIsHovered] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(device.name);
+  const [showToggleWarning, setShowToggleWarning] = useState(false);
+
+  const handleToggle = () => {
+    if (device.controlMode === 'smart' || device.controlMode === 'scheduled') {
+      setShowToggleWarning(true);
+    } else {
+      onToggle(device.id);
+    }
+  };
 
   const sensorData = device.sensorData ?? { occupancy: 'vacant', lightLevel: 0 };
   const powerData = device.powerData ?? { currentWatts: 0, isAbnormal: false };
@@ -123,7 +142,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <Switch
               checked={device.isOn}
-              onCheckedChange={() => onToggle(device.id)}
+              onCheckedChange={handleToggle}
               disabled={!device.isOnline}
             />
             <span className="text-sm text-muted-foreground">{device.isOn ? 'On' : 'Off'}</span>
@@ -136,6 +155,23 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
           </Button>
         </div>
       </CardContent>
+
+      <AlertDialog open={showToggleWarning} onOpenChange={setShowToggleWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Override {device.controlMode === 'smart' ? 'Smart' : 'Scheduled'} Mode?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {device.controlMode === 'smart'
+                ? 'This device is currently in Smart Mode. Toggling it manually will override the occupancy automation. Do you want to continue?'
+                : 'This device is currently in Scheduled Mode. Toggling it manually will override the schedule. Do you want to continue?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onToggle(device.id)}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

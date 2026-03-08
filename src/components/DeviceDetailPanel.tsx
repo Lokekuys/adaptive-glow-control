@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Power,
   Clock,
@@ -77,6 +78,8 @@ export function DeviceDetailPanel({
   onScheduleChange,
   onControlModeChange,
 }: DeviceDetailPanelProps) {
+  const [showToggleWarning, setShowToggleWarning] = React.useState(false);
+
   if (!device) return null;
 
   const sensorData = device.sensorData ?? { occupancy: "vacant", lightLevel: 0 };
@@ -105,6 +108,14 @@ export function DeviceDetailPanel({
   const handleRemove = () => {
     onRemove(device.id);
     onClose();
+  };
+
+  const handleToggle = () => {
+    if (device.controlMode === 'smart' || device.controlMode === 'scheduled') {
+      setShowToggleWarning(true);
+    } else {
+      onToggle(device.id);
+    }
   };
 
   // Schedule summary for display
@@ -145,7 +156,7 @@ export function DeviceDetailPanel({
             </div>
             <Switch
               checked={device.isOn}
-              onCheckedChange={() => onToggle(device.id)}
+              onCheckedChange={handleToggle}
               disabled={!device.isOnline}
             />
           </div>
@@ -322,6 +333,23 @@ export function DeviceDetailPanel({
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        <AlertDialog open={showToggleWarning} onOpenChange={setShowToggleWarning}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Override {device.controlMode === 'smart' ? 'Smart' : 'Scheduled'} Mode?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {device.controlMode === 'smart'
+                  ? 'This device is currently in Smart Mode. Toggling it manually will override the occupancy automation. Do you want to continue?'
+                  : 'This device is currently in Scheduled Mode. Toggling it manually will override the schedule. Do you want to continue?'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => onToggle(device.id)}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );
