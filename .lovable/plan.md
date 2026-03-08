@@ -1,19 +1,26 @@
 
 
-# Fix: Update Presence Parsing for New Firebase Structure
+# Add Confirmation Dialog for Manual Toggle in Smart/Scheduled Mode
 
-## Problem
-The current code reads `data.presence === true` (a simple boolean), but Firebase now stores `presence` as an object with `detected`, `distance_cm`, `motionlessDetected`, `movingDetected`, etc.
+## What
+When a user toggles a device OFF (or ON) while it's in **smart** or **scheduled** control mode, show a confirmation dialog warning them that they're overriding the automation. If in **manual** mode, toggle immediately with no dialog.
 
-## Fix
-In `src/hooks/useDevices.ts` line 145, change:
-```typescript
-// Before:
-occupancy: data.presence === true ? "occupied" : "vacant",
+## Changes
 
-// After:
-occupancy: data.presence?.detected === true ? "occupied" : "vacant",
-```
+### 1. DeviceCard.tsx — Add AlertDialog for toggle confirmation
+- Add local state `showToggleWarning` (boolean)
+- On switch toggle: if device is in `smart` or `scheduled` mode, set `showToggleWarning = true` instead of calling `onToggle` directly
+- If in `manual` mode, call `onToggle` directly as before
+- Render an `AlertDialog` with a message like:
+  - Smart mode: *"This device is currently in Smart Mode. Turning it off manually will override the automation. Do you want to continue?"*
+  - Scheduled mode: *"This device is currently in Scheduled Mode. Toggling it manually will override the schedule. Do you want to continue?"*
+- On confirm: call `onToggle(device.id)` and close dialog
+- On cancel: close dialog, no action
 
-Single line change. No new UI displays needed — just read `presence.detected` instead of `presence` directly.
+### 2. DeviceDetailPanel.tsx — Same logic for the toggle switch there
+- Apply the same confirmation pattern to the toggle switch in the detail panel
+
+## Files to modify
+- `src/components/DeviceCard.tsx` — add AlertDialog state and render
+- `src/components/DeviceDetailPanel.tsx` — same confirmation logic
 
