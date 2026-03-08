@@ -405,13 +405,9 @@ export function useDevices() {
         turnedOnAt: newIsOn ? new Date().toISOString() : null,
       };
 
-      // If in scheduled mode, set manual override until next boundary
-      // so the schedule auto-check doesn't immediately revert this toggle
-      if (device.controlMode === 'scheduled' && device.override?.schedule?.enabled) {
-        const boundary = getNextScheduleBoundary(device);
-        if (boundary) {
-          updates['override/manualOverrideUntil'] = boundary;
-        }
+      // If in scheduled mode, switch to manual mode so the schedule doesn't fight back
+      if (device.controlMode === 'scheduled') {
+        updates.controlMode = 'manual';
       }
 
       update(ref(rtdb, `devices/${deviceId}`), updates);
