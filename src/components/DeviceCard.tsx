@@ -14,6 +14,7 @@ import {
 } from './SensorDisplay';
 import { Badge } from '@/components/ui/badge';
 import { CountdownTimer } from './CountdownTimer';
+import { ScheduleCountdown } from './ScheduleCountdown';
 import { ref, update } from 'firebase/database';
 import { rtdb } from '@/lib/firebase';
 import { getScheduleStatus, getScheduleLabel } from '@/lib/scheduleUtils';
@@ -136,6 +137,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
         <OnDurationDisplay turnedOnAt={device.turnedOnAt} isOn={device.isOn} compact />
 
         {countdownEndsAt && <div className="mt-2"><CountdownTimer endsAt={countdownEndsAt} /></div>}
+        <ScheduleCountdown device={device} />
 
         {/* Footer Controls */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t">
