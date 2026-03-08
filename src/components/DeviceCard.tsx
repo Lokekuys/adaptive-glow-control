@@ -137,7 +137,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
         <OnDurationDisplay turnedOnAt={device.turnedOnAt} isOn={device.isOn} compact />
 
         {countdownEndsAt && <div className="mt-2"><CountdownTimer endsAt={countdownEndsAt} /></div>}
-        <ScheduleCountdown device={device} />
+        <div className="mt-2"><ScheduleCountdown device={device} /></div>
 
         {/* Footer Controls */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t">
