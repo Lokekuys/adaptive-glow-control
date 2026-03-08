@@ -332,6 +332,23 @@ export function DeviceDetailPanel({
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        <AlertDialog open={showToggleWarning} onOpenChange={setShowToggleWarning}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Override {device.controlMode === 'smart' ? 'Smart' : 'Scheduled'} Mode?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {device.controlMode === 'smart'
+                  ? 'This device is currently in Smart Mode. Toggling it manually will override the occupancy automation. Do you want to continue?'
+                  : 'This device is currently in Scheduled Mode. Toggling it manually will override the schedule. Do you want to continue?'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => onToggle(device.id)}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );
