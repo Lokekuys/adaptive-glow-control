@@ -246,6 +246,7 @@ export function PowerAnalytics({ dailyData, monthlyData, vecoRate, onVecoRateCha
                       color: 'hsl(var(--foreground))',
                     }}
                     labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
                     formatter={(value: number, name: string) => [
                       `${value.toFixed(1)} kWh`,
                       name === 'avgKwh' ? 'Daily Avg' : 'Total',
