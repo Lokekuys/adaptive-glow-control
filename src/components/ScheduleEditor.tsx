@@ -190,6 +190,7 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Set Active Hours</DialogTitle>
+            <DialogDescription>Choose the start and end time for this schedule.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
