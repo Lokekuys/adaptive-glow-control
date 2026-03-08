@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Clock, ArrowRight } from 'lucide-react';
 import { DayOfWeek, ScheduleEntry } from '@/types/device';
