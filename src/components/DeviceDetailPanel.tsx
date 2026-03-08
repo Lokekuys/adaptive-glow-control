@@ -118,11 +118,6 @@ export function DeviceDetailPanel({
     }
   };
 
-  // Schedule summary for display
-  const schedule = device.override?.schedule;
-  const scheduleSummary = schedule?.enabled && schedule.days?.length
-    ? `${schedule.days.join(', ')} • ${schedule.startTime} – ${schedule.endTime}`
-    : null;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
