@@ -14,6 +14,7 @@ import {
 } from './SensorDisplay';
 import { Badge } from '@/components/ui/badge';
 import { CountdownTimer } from './CountdownTimer';
+import { ScheduleCountdown } from './ScheduleCountdown';
 import { ref, update } from 'firebase/database';
 import { rtdb } from '@/lib/firebase';
 import { getScheduleStatus, getScheduleLabel } from '@/lib/scheduleUtils';
