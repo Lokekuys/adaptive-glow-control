@@ -142,7 +142,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <Switch
               checked={device.isOn}
-              onCheckedChange={() => onToggle(device.id)}
+              onCheckedChange={handleToggle}
               disabled={!device.isOnline}
             />
             <span className="text-sm text-muted-foreground">{device.isOn ? 'On' : 'Off'}</span>
