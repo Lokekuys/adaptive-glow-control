@@ -166,7 +166,7 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
             <Input
               type="time"
               value={current.startTime}
-              onChange={(e) => updateSchedule({ startTime: e.target.value })}
+              onChange={(e) => handleTimeChange({ startTime: e.target.value })}
               className="font-mono text-sm h-9 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
@@ -176,7 +176,7 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
             <Input
               type="time"
               value={current.endTime}
-              onChange={(e) => updateSchedule({ endTime: e.target.value })}
+              onChange={(e) => handleTimeChange({ endTime: e.target.value })}
               className="font-mono text-sm h-9 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
@@ -192,6 +192,26 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
           </p>
         </div>
       )}
+
+      {/* Time change confirmation dialog */}
+      <AlertDialog open={!!pendingTime} onOpenChange={(open) => !open && setPendingTime(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Update Schedule Hours?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Change active hours to{' '}
+              <span className="font-semibold text-foreground">
+                {formatTime12(pendingTime?.startTime ?? current.startTime)} – {formatTime12(pendingTime?.endTime ?? current.endTime)}
+              </span>
+              ? The device will follow the new schedule.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmTimeChange}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
