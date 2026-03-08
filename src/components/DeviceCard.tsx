@@ -39,6 +39,15 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
   const [isHovered, setIsHovered] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(device.name);
+  const [showToggleWarning, setShowToggleWarning] = useState(false);
+
+  const handleToggle = () => {
+    if (device.controlMode === 'smart' || device.controlMode === 'scheduled') {
+      setShowToggleWarning(true);
+    } else {
+      onToggle(device.id);
+    }
+  };
 
   const sensorData = device.sensorData ?? { occupancy: 'vacant', lightLevel: 0 };
   const powerData = device.powerData ?? { currentWatts: 0, isAbnormal: false };
