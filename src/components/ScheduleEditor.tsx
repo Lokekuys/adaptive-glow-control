@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { ScheduleStatus } from '@/lib/scheduleUtils';
 import {
@@ -189,6 +190,7 @@ export function ScheduleEditor({ schedule, onChange, scheduleStatus, statusLabel
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Set Active Hours</DialogTitle>
+            <DialogDescription>Choose the start and end time for this schedule.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">

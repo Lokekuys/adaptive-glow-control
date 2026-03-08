@@ -8,7 +8,7 @@ export type ScheduleStatus = 'active' | 'outside-hours' | 'outside-days' | null;
 
 export function getScheduleStatus(device: SmartPlug): ScheduleStatus {
   const schedule = device.override?.schedule;
-  if (!schedule?.enabled || !schedule.days?.length) return null;
+  if (!schedule?.days?.length || !schedule?.startTime || !schedule?.endTime) return null;
 
   const now = new Date();
   const currentDay = DAY_MAP[now.getDay()];
@@ -37,7 +37,7 @@ export function getScheduleLabel(status: ScheduleStatus): string | null {
 /** Returns ISO string of the next schedule boundary (start or end) for today */
 export function getNextScheduleBoundary(device: SmartPlug): string | null {
   const schedule = device.override?.schedule;
-  if (!schedule?.enabled) return null;
+  if (!schedule?.startTime || !schedule?.endTime) return null;
 
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();

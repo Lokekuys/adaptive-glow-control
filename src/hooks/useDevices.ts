@@ -348,7 +348,7 @@ export function useDevices() {
 
       devices.forEach((device) => {
         const schedule = device.override?.schedule;
-        if (!schedule?.enabled || !schedule.days?.length) return;
+        if (!schedule?.days?.length || !schedule?.startTime || !schedule?.endTime) return;
         if (device.controlMode !== 'scheduled') return;
 
         // Respect manual override until boundary
@@ -467,11 +467,27 @@ export function useDevices() {
   }, []);
 
   const setControlMode = useCallback((deviceId: string, mode: ControlMode) => {
-    update(ref(rtdb, `devices/${deviceId}`), {
+    const updates: Record<string, any> = {
       controlMode: mode,
       lastSeen: new Date().toISOString(),
-    });
-  }, []);
+    };
+
+    // When switching to scheduled, ensure a default schedule exists
+    if (mode === 'scheduled') {
+      const device = devices?.find((d) => d.id === deviceId);
+      const existing = device?.override?.schedule;
+      if (!existing?.days?.length || !existing?.startTime || !existing?.endTime) {
+        updates['override/schedule'] = {
+          enabled: true,
+          days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+          startTime: '08:00',
+          endTime: '18:00',
+        };
+      }
+    }
+
+    update(ref(rtdb, `devices/${deviceId}`), updates);
+  }, [devices]);
 
   const refreshDevices = useCallback(() => {
     window.location.reload();
