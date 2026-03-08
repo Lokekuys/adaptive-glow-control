@@ -17,6 +17,16 @@ import { CountdownTimer } from './CountdownTimer';
 import { ref, update } from 'firebase/database';
 import { rtdb } from '@/lib/firebase';
 import { getScheduleStatus, getScheduleLabel } from '@/lib/scheduleUtils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface DeviceCardProps {
   device: SmartPlug;
