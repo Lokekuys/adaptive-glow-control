@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AdminDashboard from "./pages/AdminDashboard";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 
