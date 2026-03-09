@@ -26,6 +26,7 @@ const Index = () => {
   const { logout } = useAuth();
   const { isAdmin } = useAdmin();
   const navigate = useNavigate();
+  const {
     devices,
     countdowns,
     dailyPowerData,
