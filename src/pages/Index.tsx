@@ -24,7 +24,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const { logout } = useAuth();
-  const {
+  const { isAdmin } = useAdmin();
+  const navigate = useNavigate();
     devices,
     countdowns,
     dailyPowerData,
