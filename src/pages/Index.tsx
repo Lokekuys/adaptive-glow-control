@@ -102,6 +102,11 @@ const Index = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} title="Admin Panel">
+                  <Shield className="w-4 h-4" />
+                </Button>
+              )}
               <ThemeToggle />
               <Button variant="ghost" size="icon" onClick={logout} title="Sign out">
                 <LogOut className="w-4 h-4" />
