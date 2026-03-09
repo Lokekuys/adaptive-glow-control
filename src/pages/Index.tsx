@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Plug,
   User,
   Sun,
   LogOut,
+  Shield,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
 
 import { useDevices } from "@/hooks/useDevices";
@@ -21,6 +24,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const { logout } = useAuth();
+  const { isAdmin } = useAdmin();
+  const navigate = useNavigate();
   const {
     devices,
     countdowns,
@@ -98,6 +103,11 @@ const Index = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} title="Admin Panel">
+                  <Shield className="w-4 h-4" />
+                </Button>
+              )}
               <ThemeToggle />
               <Button variant="ghost" size="icon" onClick={logout} title="Sign out">
                 <LogOut className="w-4 h-4" />
