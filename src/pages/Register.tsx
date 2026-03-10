@@ -66,7 +66,7 @@ const Register = () => {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-2 pb-2">
           <div className="mx-auto flex items-center justify-center w-48 h-24">
-            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain drop-shadow-md" style={{ mixBlendMode: 'multiply' }} />
+            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain drop-shadow-md" />
           </div>
           <p className="text-sm text-muted-foreground">
             Register to access VCCion
