@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
 import { UserPlus, Loader2 } from "lucide-react";
-import VCCionLogo from "@/assets/VCCion_Logo_Transparent.png";
+import VCCionLogo from "@/assets/VCCion_Logo.png";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -65,8 +65,8 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-2 pb-2">
-          <div className="mx-auto flex items-center justify-center w-48 h-24">
-            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain drop-shadow-md" />
+          <div className="mx-auto w-36 h-24 rounded-xl bg-white p-2 shadow-sm">
+            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain" />
           </div>
           <p className="text-sm text-muted-foreground">
             Register to access VCCion
