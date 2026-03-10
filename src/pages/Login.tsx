@@ -50,8 +50,8 @@ const Login = () => {
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-3 pb-2">
-          <div className="mx-auto flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground">
-            <Plug className="w-7 h-7" />
+          <div className="mx-auto flex items-center justify-center w-20 h-20">
+            <img src={VCCionLogo} alt="VCCion Logo" className="w-20 h-20 object-contain" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">VCCion</h1>
