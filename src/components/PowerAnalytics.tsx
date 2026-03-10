@@ -34,9 +34,10 @@ interface PowerAnalyticsProps {
   monthlyData: MonthlyData[];
   vecoRate: number;
   onVecoRateChange: (rate: number) => void;
+  isAdmin?: boolean;
 }
 
-export function PowerAnalytics({ dailyData, monthlyData, vecoRate, onVecoRateChange }: PowerAnalyticsProps) {
+export function PowerAnalytics({ dailyData, monthlyData, vecoRate, onVecoRateChange, isAdmin }: PowerAnalyticsProps) {
   const [isEditingRate, setIsEditingRate] = useState(false);
   const [editRate, setEditRate] = useState(vecoRate.toString());
   // Daily stats
