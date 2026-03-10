@@ -64,16 +64,13 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center space-y-3 pb-2">
-          <div className="mx-auto flex items-center justify-center w-40 h-28">
-            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain" />
+        <CardHeader className="text-center space-y-2 pb-2">
+          <div className="mx-auto flex items-center justify-center w-48 h-24">
+            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain drop-shadow-md" style={{ mixBlendMode: 'multiply' }} />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Create Account</h1>
-            <p className="text-sm text-muted-foreground">
-              Register to access VCCion
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Register to access VCCion
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
