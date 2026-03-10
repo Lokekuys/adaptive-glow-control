@@ -159,6 +159,7 @@ const Index = () => {
           monthlyData={monthlyPowerData}
           vecoRate={vecoRate}
           onVecoRateChange={updateVecoRate}
+          isAdmin={isAdmin === true}
         />
 
         {/* DEVICES GRID */}
