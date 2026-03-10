@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, Link } from "react-router-dom";
 import { LogIn, Loader2 } from "lucide-react";
-import VCCionLogo from "@/assets/VCCion_Logo.png";
+import VCCionLogo from "@/assets/VCCion_Logo_Transparent.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,16 +49,13 @@ const Login = () => {
         <ThemeToggle />
       </div>
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center space-y-3 pb-2">
-          <div className="mx-auto flex items-center justify-center w-40 h-28">
-            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain" />
+        <CardHeader className="text-center space-y-2 pb-2">
+          <div className="mx-auto flex items-center justify-center w-48 h-24">
+            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain drop-shadow-md" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">VCCion</h1>
-            <p className="text-sm text-muted-foreground">
-              Sign in to access the control panel
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Sign in to access the control panel
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

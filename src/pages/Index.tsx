@@ -6,7 +6,7 @@ import {
   LogOut,
   Shield,
 } from "lucide-react";
-import VCCionLogo from "@/assets/VCCion_Logo.png";
+import VCCionLogo from "@/assets/VCCion_Logo_Transparent.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
