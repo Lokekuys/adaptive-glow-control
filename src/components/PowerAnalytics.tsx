@@ -34,9 +34,10 @@ interface PowerAnalyticsProps {
   monthlyData: MonthlyData[];
   vecoRate: number;
   onVecoRateChange: (rate: number) => void;
+  isAdmin?: boolean;
 }
 
-export function PowerAnalytics({ dailyData, monthlyData, vecoRate, onVecoRateChange }: PowerAnalyticsProps) {
+export function PowerAnalytics({ dailyData, monthlyData, vecoRate, onVecoRateChange, isAdmin }: PowerAnalyticsProps) {
   const [isEditingRate, setIsEditingRate] = useState(false);
   const [editRate, setEditRate] = useState(vecoRate.toString());
   // Daily stats
@@ -102,9 +103,11 @@ export function PowerAnalytics({ dailyData, monthlyData, vecoRate, onVecoRateCha
                 <span className="text-muted-foreground font-medium">VECO Rate:</span>
                 <span className="font-bold text-foreground">{vecoRate.toFixed(2)}</span>
                 <span className="text-muted-foreground text-xs">₱/kWh</span>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditRate(vecoRate.toString()); setIsEditingRate(true); }}>
-                  <Pencil className="w-3 h-3 text-muted-foreground" />
-                </Button>
+                {isAdmin && (
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditRate(vecoRate.toString()); setIsEditingRate(true); }}>
+                    <Pencil className="w-3 h-3 text-muted-foreground" />
+                  </Button>
+                )}
               </div>
             )}
           </div>
