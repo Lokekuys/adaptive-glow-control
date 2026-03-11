@@ -6,7 +6,7 @@ import {
   LogOut,
   Shield,
 } from "lucide-react";
-import VCCionLogo from "@/assets/VCCion_Logo.png";
+import VCCionLogo from "@/assets/VCCion_Logo_Clean.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -89,7 +89,7 @@ const Index = () => {
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-center w-10 h-10">
                 <img src={VCCionLogo} alt="VCCion Logo" className="w-10 h-10 object-contain" />
               </div>
               <div>
