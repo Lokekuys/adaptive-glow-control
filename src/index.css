@@ -229,4 +229,9 @@
   .automation-badge.inactive {
     @apply bg-muted text-muted-foreground;
   }
+
+  /* Logo adapts to dark mode — brightens dark navy elements */
+  .dark .app-logo {
+    filter: brightness(1.4) saturate(1.1);
+  }
 }
