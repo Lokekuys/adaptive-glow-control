@@ -51,7 +51,7 @@ const Login = () => {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-2 pb-2">
           <div className="mx-auto w-44 h-28 flex items-center justify-center">
-            <img src={VCCionLogo} alt="VCCion Logo" className="w-full h-full object-contain" />
+            <img src={VCCionLogo} alt="VCCion Logo" className="app-logo w-full h-full object-contain" />
           </div>
           <p className="text-sm text-muted-foreground">
             Sign in to access the control panel
