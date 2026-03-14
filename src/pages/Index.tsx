@@ -19,7 +19,7 @@ import { DeviceCard } from "@/components/DeviceCard";
 import { DeviceDetailPanel } from "@/components/DeviceDetailPanel";
 import { SystemStatusBar } from "@/components/SystemStatusBar";
 import { PowerAnalytics } from "@/components/PowerAnalytics";
-import { AddDeviceDialog } from "@/components/AddDeviceDialog";
+import { AddDeviceScanner } from "@/components/AddDeviceScanner";
 import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
