@@ -378,17 +378,11 @@ export function useDevices() {
     []
   );
 
-  const addDevice = useCallback(
-    (name: string, location: string, applianceType: ApplianceType) => {
-      const id = `plug-${Date.now()}`;
-      const newDevice = createMockDevice(id, name, location, applianceType);
-      set(ref(rtdb, `devices/${id}`), newDevice);
-    },
-    []
-  );
-
   const removeDevice = useCallback((deviceId: string) => {
-    set(ref(rtdb, `devices/${deviceId}`), null);
+    update(ref(rtdb, `devices/${deviceId}`), {
+      isClaimed: false,
+      isRegistered: false,
+    });
   }, []);
 
   const updateSchedule = useCallback(
