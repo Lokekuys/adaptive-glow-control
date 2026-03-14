@@ -174,7 +174,7 @@ const Index = () => {
       <p className="text-muted-foreground text-sm">
         No devices found.
       </p>
-      <AddDeviceDialog onAddDevice={addDevice} />
+      <AddDeviceScanner />
     </div>
   ) : (
     devices.map((device) => (
