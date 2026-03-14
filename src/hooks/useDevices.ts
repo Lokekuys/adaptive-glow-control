@@ -98,9 +98,13 @@ export function useDevices() {
       if (snapshot.exists()) {
         const data = snapshot.val();
 
-        const deviceList: SmartPlug[] = Object.values(data)
-          .map((d: any) => ({
+        const deviceList: SmartPlug[] = Object.entries(data)
+          .filter(([_, d]: [string, any]) => d.isClaimed === true)
+          .map(([id, d]: [string, any]) => ({
             ...d,
+            id,
+            isOn: d.relayState ?? d.isOn ?? false,
+            isOnline: d.status === 'online',
             controlMode: d.controlMode ?? 'manual',
 
             sensorData: {
@@ -131,6 +135,12 @@ export function useDevices() {
               targetLux: d.automationSettings?.targetLux ?? 400,
             },
 
+            classification: d.classification ?? {
+              type: 'switching' as const,
+              pwmCompatible: false,
+              description: 'Unknown load type',
+            },
+
             override: {
               active: d.override?.active ?? false,
               permanent: d.override?.permanent ?? false,
@@ -138,18 +148,10 @@ export function useDevices() {
               ...(d.override?.schedule ? { schedule: d.override.schedule } : {}),
             },
 
+            location: d.location ?? 'Unknown',
+            brightness: d.brightness ?? 100,
             lastSeen: d.lastSeen ? new Date(d.lastSeen) : new Date(),
           }))
-          // ✅ FILTER OUT INVALID / UNKNOWN DEVICES
-          .filter(
-            (d) =>
-              d.id &&
-              d.name &&
-              d.location &&
-              d.sensorData &&
-              d.powerData &&
-              d.automationSettings
-          );
 
         setDevices(deviceList);
         setSystemStatus((prev) => ({
