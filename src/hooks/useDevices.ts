@@ -218,6 +218,7 @@ export function useDevices() {
       if (!isOn && sensorData.occupancy === "occupied") {
         update(ref(rtdb, `devices/${id}`), {
           isOn: true,
+          relayState: true,
           lastSeen: new Date().toISOString(),
           turnedOnAt: new Date().toISOString(),
         });
