@@ -336,6 +336,7 @@ export function useDevices() {
       const newIsOn = !device.isOn;
       const updates: Record<string, any> = {
         isOn: newIsOn,
+        relayState: newIsOn,
         lastSeen: new Date().toISOString(),
         turnedOnAt: newIsOn ? new Date().toISOString() : null,
       };
