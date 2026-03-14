@@ -160,13 +160,8 @@ export function useDevices() {
           lastSync: new Date(),
         }));
       } else {
-        // Firebase loaded but empty
+        // Firebase loaded but empty — no seeding
         setDevices([]);
-
-        // Seed ONCE for demo purposes
-        mockDevices.forEach((device) => {
-          set(ref(rtdb, `devices/${device.id}`), device);
-        });
       }
     });
 
