@@ -38,7 +38,6 @@ const Index = () => {
     updateAutomation,
     setOverride,
     setControlMode,
-    addDevice,
     removeDevice,
     updateSchedule,
     updateVecoRate,
