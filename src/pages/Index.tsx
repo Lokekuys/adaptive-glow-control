@@ -165,7 +165,7 @@ const Index = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Connected Devices</h2>
-            <AddDeviceDialog onAddDevice={addDevice} />
+            <AddDeviceScanner />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
