@@ -12,69 +12,7 @@ import {
 } from "@/types/device";
 import { getScheduleStatus, getNextScheduleBoundary } from "@/lib/scheduleUtils";
 
-/* ---------- MOCK DATA (SEED ONLY) ---------- */
-
-const createMockDevice = (
-  id: string,
-  name: string,
-  location: string,
-  applianceType?: ApplianceType
-): SmartPlug => {
-  const type =
-    applianceType ||
-    (["resistive", "inductive", "switching"][
-      Math.floor(Math.random() * 3)
-    ] as ApplianceType);
-
-  const pwmCompatible = type === "resistive";
-
-  return {
-    id,
-    name,
-    location,
-    isOnline: true,
-    isOn: false,
-    brightness: pwmCompatible ? 50 : 100,
-    controlMode: 'manual' as ControlMode,
-    classification: {
-      type,
-      pwmCompatible,
-      description: pwmCompatible
-        ? "PWM dimming supported for resistive load"
-        : `PWM disabled for ${type} load`,
-    },
-    sensorData: {
-      occupancy: "vacant",
-      lightLevel: 300,
-      lastUpdated: new Date(),
-    },
-    powerData: {
-      currentWatts: 0,
-      voltage: 220,
-      current: 0,
-      todayKwh: 0,
-      isAbnormal: false,
-    },
-    automationSettings: {
-      occupancyControlEnabled: true,
-      autoOffDelaySeconds: 300,
-      adaptiveLightingEnabled: pwmCompatible,
-      brightnessMin: 20,
-      brightnessMax: 100,
-      targetLux: 400,
-    },
-    override: {
-      active: false,
-      permanent: false,
-    },
-    lastSeen: new Date(),
-  };
-};
-
-const mockDevices: SmartPlug[] = [
-  createMockDevice("plug-001", "Living Room Light", "Living Room", "resistive"),
-  createMockDevice("plug-002", "Bedroom Fan", "Bedroom", "inductive"),
-];
+/* ---------- (mock data removed — devices come from Firebase) ---------- */
 
 /* ---------- MOCK POWER DATA ---------- */
 
