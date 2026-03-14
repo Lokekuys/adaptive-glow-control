@@ -12,69 +12,7 @@ import {
 } from "@/types/device";
 import { getScheduleStatus, getNextScheduleBoundary } from "@/lib/scheduleUtils";
 
-/* ---------- MOCK DATA (SEED ONLY) ---------- */
-
-const createMockDevice = (
-  id: string,
-  name: string,
-  location: string,
-  applianceType?: ApplianceType
-): SmartPlug => {
-  const type =
-    applianceType ||
-    (["resistive", "inductive", "switching"][
-      Math.floor(Math.random() * 3)
-    ] as ApplianceType);
-
-  const pwmCompatible = type === "resistive";
-
-  return {
-    id,
-    name,
-    location,
-    isOnline: true,
-    isOn: false,
-    brightness: pwmCompatible ? 50 : 100,
-    controlMode: 'manual' as ControlMode,
-    classification: {
-      type,
-      pwmCompatible,
-      description: pwmCompatible
-        ? "PWM dimming supported for resistive load"
-        : `PWM disabled for ${type} load`,
-    },
-    sensorData: {
-      occupancy: "vacant",
-      lightLevel: 300,
-      lastUpdated: new Date(),
-    },
-    powerData: {
-      currentWatts: 0,
-      voltage: 220,
-      current: 0,
-      todayKwh: 0,
-      isAbnormal: false,
-    },
-    automationSettings: {
-      occupancyControlEnabled: true,
-      autoOffDelaySeconds: 300,
-      adaptiveLightingEnabled: pwmCompatible,
-      brightnessMin: 20,
-      brightnessMax: 100,
-      targetLux: 400,
-    },
-    override: {
-      active: false,
-      permanent: false,
-    },
-    lastSeen: new Date(),
-  };
-};
-
-const mockDevices: SmartPlug[] = [
-  createMockDevice("plug-001", "Living Room Light", "Living Room", "resistive"),
-  createMockDevice("plug-002", "Bedroom Fan", "Bedroom", "inductive"),
-];
+/* ---------- (mock data removed — devices come from Firebase) ---------- */
 
 /* ---------- MOCK POWER DATA ---------- */
 
@@ -160,9 +98,13 @@ export function useDevices() {
       if (snapshot.exists()) {
         const data = snapshot.val();
 
-        const deviceList: SmartPlug[] = Object.values(data)
-          .map((d: any) => ({
+        const deviceList: SmartPlug[] = Object.entries(data)
+          .filter(([_, d]: [string, any]) => d.isClaimed === true)
+          .map(([id, d]: [string, any]) => ({
             ...d,
+            id,
+            isOn: d.relayState ?? d.isOn ?? false,
+            isOnline: d.status === 'online',
             controlMode: d.controlMode ?? 'manual',
 
             sensorData: {
@@ -193,6 +135,12 @@ export function useDevices() {
               targetLux: d.automationSettings?.targetLux ?? 400,
             },
 
+            classification: d.classification ?? {
+              type: 'switching' as const,
+              pwmCompatible: false,
+              description: 'Unknown load type',
+            },
+
             override: {
               active: d.override?.active ?? false,
               permanent: d.override?.permanent ?? false,
@@ -200,18 +148,10 @@ export function useDevices() {
               ...(d.override?.schedule ? { schedule: d.override.schedule } : {}),
             },
 
+            location: d.location ?? 'Unknown',
+            brightness: d.brightness ?? 100,
             lastSeen: d.lastSeen ? new Date(d.lastSeen) : new Date(),
           }))
-          // ✅ FILTER OUT INVALID / UNKNOWN DEVICES
-          .filter(
-            (d) =>
-              d.id &&
-              d.name &&
-              d.location &&
-              d.sensorData &&
-              d.powerData &&
-              d.automationSettings
-          );
 
         setDevices(deviceList);
         setSystemStatus((prev) => ({
@@ -220,13 +160,8 @@ export function useDevices() {
           lastSync: new Date(),
         }));
       } else {
-        // Firebase loaded but empty
+        // Firebase loaded but empty — no seeding
         setDevices([]);
-
-        // Seed ONCE for demo purposes
-        mockDevices.forEach((device) => {
-          set(ref(rtdb, `devices/${device.id}`), device);
-        });
       }
     });
 
@@ -401,6 +336,7 @@ export function useDevices() {
       const newIsOn = !device.isOn;
       const updates: Record<string, any> = {
         isOn: newIsOn,
+        relayState: newIsOn,
         lastSeen: new Date().toISOString(),
         turnedOnAt: newIsOn ? new Date().toISOString() : null,
       };
@@ -442,17 +378,11 @@ export function useDevices() {
     []
   );
 
-  const addDevice = useCallback(
-    (name: string, location: string, applianceType: ApplianceType) => {
-      const id = `plug-${Date.now()}`;
-      const newDevice = createMockDevice(id, name, location, applianceType);
-      set(ref(rtdb, `devices/${id}`), newDevice);
-    },
-    []
-  );
-
   const removeDevice = useCallback((deviceId: string) => {
-    set(ref(rtdb, `devices/${deviceId}`), null);
+    update(ref(rtdb, `devices/${deviceId}`), {
+      isClaimed: false,
+      isRegistered: false,
+    });
   }, []);
 
   const updateSchedule = useCallback(
@@ -506,7 +436,6 @@ export function useDevices() {
     updateAutomation,
     setOverride,
     setControlMode,
-    addDevice,
     removeDevice,
     updateSchedule,
     updateVecoRate,

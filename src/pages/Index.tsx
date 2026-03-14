@@ -19,7 +19,7 @@ import { DeviceCard } from "@/components/DeviceCard";
 import { DeviceDetailPanel } from "@/components/DeviceDetailPanel";
 import { SystemStatusBar } from "@/components/SystemStatusBar";
 import { PowerAnalytics } from "@/components/PowerAnalytics";
-import { AddDeviceDialog } from "@/components/AddDeviceDialog";
+import { AddDeviceScanner } from "@/components/AddDeviceScanner";
 import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
@@ -38,7 +38,6 @@ const Index = () => {
     updateAutomation,
     setOverride,
     setControlMode,
-    addDevice,
     removeDevice,
     updateSchedule,
     updateVecoRate,
@@ -166,7 +165,7 @@ const Index = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Connected Devices</h2>
-            <AddDeviceDialog onAddDevice={addDevice} />
+            <AddDeviceScanner />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -175,7 +174,7 @@ const Index = () => {
       <p className="text-muted-foreground text-sm">
         No devices found.
       </p>
-      <AddDeviceDialog onAddDevice={addDevice} />
+      <AddDeviceScanner />
     </div>
   ) : (
     devices.map((device) => (

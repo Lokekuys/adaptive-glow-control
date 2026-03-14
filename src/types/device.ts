@@ -58,6 +58,11 @@ export interface SmartPlug {
   location: string;
   isOnline: boolean;
   isOn: boolean;
+  type?: string;
+  isClaimed?: boolean;
+  isRegistered?: boolean;
+  relayState?: boolean;
+  status?: string;
   brightness: number; // 0-100, only applicable if PWM compatible
   controlMode: ControlMode;
   classification: LoadClassification;
