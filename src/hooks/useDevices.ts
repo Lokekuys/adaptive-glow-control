@@ -239,6 +239,7 @@ export function useDevices() {
         vacancyTimers.current[id] = setTimeout(() => {
           update(ref(rtdb, `devices/${id}`), {
             isOn: false,
+            relayState: false,
             lastSeen: new Date().toISOString(),
             turnedOnAt: null,
           });
@@ -347,6 +348,18 @@ export function useDevices() {
       // If in scheduled mode, switch to manual mode so the schedule doesn't fight back
       if (device.controlMode === 'scheduled') {
         updates.controlMode = 'manual';
+      }
+
+      // In smart mode, allow manual toggle without leaving smart mode
+      // Cancel any pending vacancy timer for this device
+      if (device.controlMode === 'smart' && vacancyTimers.current[deviceId]) {
+        clearTimeout(vacancyTimers.current[deviceId]);
+        delete vacancyTimers.current[deviceId];
+        setCountdowns((prev) => {
+          const next = { ...prev };
+          delete next[deviceId];
+          return next;
+        });
       }
 
       update(ref(rtdb, `devices/${deviceId}`), updates);
