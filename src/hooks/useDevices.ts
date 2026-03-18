@@ -309,12 +309,14 @@ export function useDevices() {
         if (inWindow && !device.isOn) {
           update(ref(rtdb, `devices/${device.id}`), {
             isOn: true,
+            relayState: true,
             lastSeen: new Date().toISOString(),
             turnedOnAt: new Date().toISOString(),
           });
         } else if (!inWindow && device.isOn) {
           update(ref(rtdb, `devices/${device.id}`), {
             isOn: false,
+            relayState: false,
             lastSeen: new Date().toISOString(),
             turnedOnAt: null,
           });
