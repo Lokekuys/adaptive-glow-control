@@ -12,7 +12,7 @@ export function ScheduleCountdown({ device }: ScheduleCountdownProps) {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 60_000);
+    const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -25,13 +25,19 @@ export function ScheduleCountdown({ device }: ScheduleCountdownProps) {
   const diffMs = new Date(boundary).getTime() - now;
   if (diffMs <= 0) return null;
 
-  const totalMin = Math.ceil(diffMs / 60_000);
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
+  const totalSec = Math.ceil(diffMs / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
 
-  const display = h >= 24
-    ? `${Math.floor(h / 24)}d ${h % 24}h`
-    : h > 0 ? `${h}h ${m}m` : `${m}m`;
+  const display = d > 0
+    ? `${d}d ${h}h ${m.toString().padStart(2, '0')}m`
+    : h > 0
+      ? `${h}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`
+      : m > 0
+        ? `${m}m ${s.toString().padStart(2, '0')}s`
+        : `${s}s`;
   const label = status === 'active' ? `Turns off in ${display}` : `Turns on in ${display}`;
 
   return (
