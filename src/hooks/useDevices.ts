@@ -239,6 +239,7 @@ export function useDevices() {
         vacancyTimers.current[id] = setTimeout(() => {
           update(ref(rtdb, `devices/${id}`), {
             isOn: false,
+            relayState: false,
             lastSeen: new Date().toISOString(),
             turnedOnAt: null,
           });
