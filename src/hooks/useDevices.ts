@@ -350,6 +350,18 @@ export function useDevices() {
         updates.controlMode = 'manual';
       }
 
+      // In smart mode, allow manual toggle without leaving smart mode
+      // Cancel any pending vacancy timer for this device
+      if (device.controlMode === 'smart' && vacancyTimers.current[deviceId]) {
+        clearTimeout(vacancyTimers.current[deviceId]);
+        delete vacancyTimers.current[deviceId];
+        setCountdowns((prev) => {
+          const next = { ...prev };
+          delete next[deviceId];
+          return next;
+        });
+      }
+
       update(ref(rtdb, `devices/${deviceId}`), updates);
     },
     [devices]
