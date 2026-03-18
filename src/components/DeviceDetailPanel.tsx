@@ -94,15 +94,17 @@ export function DeviceDetailPanel({
   const totalSeconds = automationSettings.autoOffDelaySeconds ?? 300;
   const autoOffHours = Math.floor(totalSeconds / 3600);
   const autoOffMinutes = Math.floor((totalSeconds % 3600) / 60);
+  const autoOffSeconds = totalSeconds % 60;
 
   const scheduleStatus = getScheduleStatus(device);
   const scheduleLabel = getScheduleLabel(scheduleStatus);
 
-  const handleTimeChange = (hours: number, minutes: number) => {
+  const handleTimeChange = (hours: number, minutes: number, seconds: number) => {
     const clampedHours = Math.max(0, Math.min(23, hours));
     const clampedMinutes = Math.max(0, Math.min(59, minutes));
-    const totalSecs = clampedHours * 3600 + clampedMinutes * 60;
-    onAutomationChange(device.id, { autoOffDelaySeconds: Math.max(60, totalSecs) });
+    const clampedSeconds = Math.max(0, Math.min(59, seconds));
+    const totalSecs = clampedHours * 3600 + clampedMinutes * 60 + clampedSeconds;
+    onAutomationChange(device.id, { autoOffDelaySeconds: Math.max(1, totalSecs) });
   };
 
   const handleRemove = () => {
@@ -223,7 +225,7 @@ export function DeviceDetailPanel({
                         min={0}
                         max={23}
                         value={autoOffHours}
-                        onChange={(e) => handleTimeChange(parseInt(e.target.value) || 0, autoOffMinutes)}
+                        onChange={(e) => handleTimeChange(parseInt(e.target.value) || 0, autoOffMinutes, autoOffSeconds)}
                         className="w-16 text-center font-mono"
                       />
                       <span className="text-sm text-muted-foreground">h</span>
@@ -235,14 +237,26 @@ export function DeviceDetailPanel({
                         min={0}
                         max={59}
                         value={autoOffMinutes}
-                        onChange={(e) => handleTimeChange(autoOffHours, parseInt(e.target.value) || 0)}
+                        onChange={(e) => handleTimeChange(autoOffHours, parseInt(e.target.value) || 0, autoOffSeconds)}
                         className="w-16 text-center font-mono"
                       />
                       <span className="text-sm text-muted-foreground">m</span>
                     </div>
+                    <span className="text-muted-foreground font-bold">:</span>
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        value={autoOffSeconds}
+                        onChange={(e) => handleTimeChange(autoOffHours, autoOffMinutes, parseInt(e.target.value) || 0)}
+                        className="w-16 text-center font-mono"
+                      />
+                      <span className="text-sm text-muted-foreground">s</span>
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Device turns off after {autoOffHours > 0 ? `${autoOffHours}h ` : ""}{autoOffMinutes}m of vacancy
+                    Device turns off after {autoOffHours > 0 ? `${autoOffHours}h ` : ""}{autoOffMinutes > 0 ? `${autoOffMinutes}m ` : ""}{autoOffSeconds}s of vacancy
                   </p>
                 </div>
               )}
