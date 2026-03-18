@@ -94,15 +94,17 @@ export function DeviceDetailPanel({
   const totalSeconds = automationSettings.autoOffDelaySeconds ?? 300;
   const autoOffHours = Math.floor(totalSeconds / 3600);
   const autoOffMinutes = Math.floor((totalSeconds % 3600) / 60);
+  const autoOffSeconds = totalSeconds % 60;
 
   const scheduleStatus = getScheduleStatus(device);
   const scheduleLabel = getScheduleLabel(scheduleStatus);
 
-  const handleTimeChange = (hours: number, minutes: number) => {
+  const handleTimeChange = (hours: number, minutes: number, seconds: number) => {
     const clampedHours = Math.max(0, Math.min(23, hours));
     const clampedMinutes = Math.max(0, Math.min(59, minutes));
-    const totalSecs = clampedHours * 3600 + clampedMinutes * 60;
-    onAutomationChange(device.id, { autoOffDelaySeconds: Math.max(60, totalSecs) });
+    const clampedSeconds = Math.max(0, Math.min(59, seconds));
+    const totalSecs = clampedHours * 3600 + clampedMinutes * 60 + clampedSeconds;
+    onAutomationChange(device.id, { autoOffDelaySeconds: Math.max(1, totalSecs) });
   };
 
   const handleRemove = () => {
