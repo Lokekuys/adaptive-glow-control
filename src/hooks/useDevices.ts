@@ -104,7 +104,7 @@ export function useDevices() {
             ...d,
             id,
             isOn: d.relayState ?? d.isOn ?? false,
-            isOnline: d.status === 'online',
+            isOnline: true, // legacy field — UI now uses lastSeen heartbeat
             controlMode: d.controlMode ?? 'manual',
 
             sensorData: {
