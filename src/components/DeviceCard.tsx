@@ -117,9 +117,21 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {device.isOnline ? <Wifi className="w-4 h-4 text-energy" /> : <WifiOff className="w-4 h-4 text-muted-foreground" />}
-            <StatusIndicator status={device.isOnline ? 'online' : 'offline'} label={device.isOnline ? 'Connected' : 'Offline'} size="sm" pulse={device.isOnline} />
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2">
+              {connectionStatus === 'connected' && <Wifi className="w-4 h-4 text-energy" />}
+              {connectionStatus === 'idle' && <AlertTriangle className="w-4 h-4 text-warning" />}
+              {connectionStatus === 'offline' && <WifiOff className="w-4 h-4 text-muted-foreground" />}
+              <StatusIndicator
+                status={statusConfig.indicatorStatus}
+                label={statusConfig.label}
+                size="sm"
+                pulse={connectionStatus === 'connected'}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono">
+              {connectionStatus !== 'connected' ? lastSeenText : ''}
+            </span>
           </div>
         </div>
 
