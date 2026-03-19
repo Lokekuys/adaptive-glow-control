@@ -104,7 +104,7 @@ export function useDevices() {
             ...d,
             id,
             isOn: d.relayState ?? d.isOn ?? false,
-            isOnline: d.status === 'online',
+            isOnline: true, // legacy field — UI now uses lastSeen heartbeat
             controlMode: d.controlMode ?? 'manual',
 
             sensorData: {
@@ -150,7 +150,7 @@ export function useDevices() {
 
             location: d.location ?? 'Unknown',
             brightness: d.brightness ?? 100,
-            lastSeen: d.lastSeen ? new Date(d.lastSeen) : new Date(),
+            lastSeen: d.lastSeen ? new Date(d.lastSeen) : new Date(0), // epoch = never seen
           }))
 
         setDevices(deviceList);

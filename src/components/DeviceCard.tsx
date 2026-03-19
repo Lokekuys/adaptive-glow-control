@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Settings, ChevronRight, Wifi, WifiOff, Pencil, Hand, Calendar, Brain } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, ChevronRight, Wifi, WifiOff, AlertTriangle, Pencil, Hand, Calendar, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SmartPlug } from '@/types/device';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { StatusIndicator } from './StatusIndicator';
 import { PowerIndicator } from './PowerIndicator';
+import { computeConnectionStatus, formatLastSeen, STATUS_CONFIG } from '@/lib/deviceStatus';
 import {
   OccupancyDisplay,
   LightLevelDisplay,
@@ -41,6 +42,18 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(device.name);
   const [showToggleWarning, setShowToggleWarning] = useState(false);
+  const [, setTick] = useState(0);
+
+  // Re-render every 5s to keep heartbeat status fresh
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const connectionStatus = computeConnectionStatus(device.lastSeen);
+  const statusConfig = STATUS_CONFIG[connectionStatus];
+  const lastSeenText = formatLastSeen(device.lastSeen);
+  const isDeviceOnline = connectionStatus === 'connected';
 
   const handleToggle = () => {
     if (device.controlMode === 'smart' || device.controlMode === 'scheduled') {
@@ -70,7 +83,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
 
   return (
     <Card
-      className={cn('device-card cursor-pointer animate-fade-in', !device.isOnline && 'opacity-60')}
+      className={cn('device-card cursor-pointer animate-fade-in', connectionStatus === 'offline' && 'opacity-60')}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onSelect(device)}
@@ -104,9 +117,21 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {device.isOnline ? <Wifi className="w-4 h-4 text-energy" /> : <WifiOff className="w-4 h-4 text-muted-foreground" />}
-            <StatusIndicator status={device.isOnline ? 'online' : 'offline'} label={device.isOnline ? 'Connected' : 'Offline'} size="sm" pulse={device.isOnline} />
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2">
+              {connectionStatus === 'connected' && <Wifi className="w-4 h-4 text-energy" />}
+              {connectionStatus === 'idle' && <AlertTriangle className="w-4 h-4 text-warning" />}
+              {connectionStatus === 'offline' && <WifiOff className="w-4 h-4 text-muted-foreground" />}
+              <StatusIndicator
+                status={statusConfig.indicatorStatus}
+                label={statusConfig.label}
+                size="sm"
+                pulse={connectionStatus === 'connected'}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono">
+              {connectionStatus !== 'connected' ? lastSeenText : ''}
+            </span>
           </div>
         </div>
 
@@ -145,7 +170,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
             <Switch
               checked={device.isOn}
               onCheckedChange={handleToggle}
-              disabled={!device.isOnline}
+              disabled={connectionStatus === 'offline'}
             />
             <span className="text-sm text-muted-foreground">{device.isOn ? 'On' : 'Off'}</span>
           </div>
