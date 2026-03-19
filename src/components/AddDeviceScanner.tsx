@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ref, onValue, update } from 'firebase/database';
 import { rtdb } from '@/lib/firebase';
-import { Plus, Search, Wifi, WifiOff, Loader2, Plug, Check } from 'lucide-react';
+import { Plus, Search, Wifi, WifiOff, AlertTriangle, Loader2, Plug, Check, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { ApplianceType } from '@/types/device';
+import { computeConnectionStatus, formatLastSeen, STATUS_CONFIG, type ConnectionStatus } from '@/lib/deviceStatus';
 import {
   Dialog,
   DialogContent,
@@ -29,17 +30,22 @@ import {
 interface UnclaimedDevice {
   id: string;
   name: string;
-  status: string;
+  lastSeen: number | string | undefined;
   type: string;
 }
 
 type Step = 'scan' | 'configure';
+type ScanState = 'idle' | 'scanning' | 'done';
+
+const SCAN_DURATION = 6000; // 6 seconds
 
 export function AddDeviceScanner() {
   const [open, setOpen] = useState(false);
   const [unclaimed, setUnclaimed] = useState<UnclaimedDevice[]>([]);
   const [step, setStep] = useState<Step>('scan');
+  const [scanState, setScanState] = useState<ScanState>('idle');
   const [selectedDevice, setSelectedDevice] = useState<UnclaimedDevice | null>(null);
+  const [, setTick] = useState(0);
 
   // Configuration fields
   const [deviceName, setDeviceName] = useState('');
@@ -47,6 +53,14 @@ export function AddDeviceScanner() {
   const [applianceType, setApplianceType] = useState<ApplianceType>('resistive');
   const [claiming, setClaiming] = useState(false);
 
+  // Tick every 5s to keep heartbeat status fresh
+  useEffect(() => {
+    if (!open) return;
+    const interval = setInterval(() => setTick((t) => t + 1), 5000);
+    return () => clearInterval(interval);
+  }, [open]);
+
+  // Listen to Firebase for unclaimed devices (only while dialog is open)
   useEffect(() => {
     if (!open) return;
 
@@ -64,7 +78,7 @@ export function AddDeviceScanner() {
           list.push({
             id,
             name: d.name || id,
-            status: d.status || 'unknown',
+            lastSeen: d.lastSeen,
             type: d.type,
           });
         }
@@ -74,6 +88,34 @@ export function AddDeviceScanner() {
 
     return () => unsubscribe();
   }, [open]);
+
+  const startScan = useCallback(() => {
+    setScanState('scanning');
+    setTimeout(() => {
+      setScanState('done');
+    }, SCAN_DURATION);
+  }, []);
+
+  // Filter: only show devices that are "connected" (lastSeen < 10s)
+  const onlineDevices = unclaimed.filter(
+    (d) => computeConnectionStatus(d.lastSeen) === 'connected'
+  );
+
+  const getDeviceStatus = (device: UnclaimedDevice): ConnectionStatus => {
+    return computeConnectionStatus(device.lastSeen);
+  };
+
+  const StatusIcon = ({ status }: { status: ConnectionStatus }) => {
+    if (status === 'connected') return <Wifi className="w-3 h-3 mr-1" />;
+    if (status === 'idle') return <AlertTriangle className="w-3 h-3 mr-1" />;
+    return <WifiOff className="w-3 h-3 mr-1" />;
+  };
+
+  const statusBadgeClass = (status: ConnectionStatus) => {
+    if (status === 'connected') return 'text-energy border-energy/30';
+    if (status === 'idle') return 'text-warning border-warning/30';
+    return 'text-muted-foreground border-muted-foreground/30';
+  };
 
   const handleSelectDevice = (device: UnclaimedDevice) => {
     setSelectedDevice(device);
@@ -123,6 +165,7 @@ export function AddDeviceScanner() {
 
   const handleReset = () => {
     setStep('scan');
+    setScanState('idle');
     setSelectedDevice(null);
     setDeviceName('');
     setLocation('');
@@ -151,57 +194,101 @@ export function AddDeviceScanner() {
                 Add Device
               </DialogTitle>
               <DialogDescription>
-                Power on your smart plug to begin pairing. Available devices will appear below automatically.
+                Power on your smart plug, then tap "Scan" to discover nearby devices.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="py-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Searching for devices...
-              </div>
+            <div className="py-4 space-y-4">
+              {/* Scan Button / Status */}
+              {scanState === 'idle' && (
+                <div className="flex flex-col items-center gap-4 py-6">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
+                    <Radio className="w-8 h-8 text-primary" />
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Make sure your smart plug is powered on and connected to WiFi before scanning.
+                  </p>
+                  <Button onClick={startScan} className="gap-2">
+                    <Search className="w-4 h-4" />
+                    Scan for Devices
+                  </Button>
+                </div>
+              )}
 
-              {unclaimed.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
-                  <Plug className="w-10 h-10 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">
-                    No unclaimed devices found.
+              {scanState === 'scanning' && (
+                <div className="flex flex-col items-center gap-3 py-6">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Scanning for devices...
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Make sure your smart plug is powered on and connected to WiFi.
+                    This will take a few seconds
                   </p>
                 </div>
-              ) : (
-                unclaimed.map((device) => (
-                  <Card key={device.id} className="border">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10">
-                          <Plug className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm text-foreground">{device.name}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{device.id}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className={device.status === 'online' ? 'text-energy border-energy/30' : 'text-muted-foreground'}
-                        >
-                          {device.status === 'online' ? (
-                            <><Wifi className="w-3 h-3 mr-1" /> Online</>
-                          ) : (
-                            <><WifiOff className="w-3 h-3 mr-1" /> Offline</>
-                          )}
-                        </Badge>
-                        <Button size="sm" onClick={() => handleSelectDevice(device)}>
-                          Add
+              )}
+
+              {scanState === 'done' && (
+                <>
+                  {onlineDevices.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
+                      <Plug className="w-10 h-10 text-muted-foreground/40" />
+                      <p className="text-sm text-muted-foreground">
+                        No devices found nearby.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Make sure your smart plug is powered on and connected to WiFi.
+                      </p>
+                      <Button variant="outline" onClick={startScan} className="gap-2 mt-2">
+                        <Search className="w-4 h-4" />
+                        Scan Again
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-foreground">
+                          Found {onlineDevices.length} device{onlineDevices.length !== 1 ? 's' : ''}
+                        </p>
+                        <Button variant="ghost" size="sm" onClick={startScan} className="gap-1 text-xs">
+                          <Search className="w-3 h-3" />
+                          Rescan
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))
+
+                      {onlineDevices.map((device) => {
+                        const status = getDeviceStatus(device);
+                        const config = STATUS_CONFIG[status];
+                        return (
+                          <Card key={device.id} className="border">
+                            <CardContent className="p-4 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10">
+                                  <Plug className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm text-foreground">{device.name}</p>
+                                  <p className="text-xs text-muted-foreground font-mono">{device.id}</p>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                                    Last seen {formatLastSeen(device.lastSeen)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className={statusBadgeClass(status)}>
+                                  <StatusIcon status={status} />
+                                  {config.label}
+                                </Badge>
+                                <Button size="sm" onClick={() => handleSelectDevice(device)}>
+                                  Add
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </>
@@ -223,12 +310,16 @@ export function AddDeviceScanner() {
                 <Badge variant="outline" className="font-mono text-xs">
                   {selectedDevice?.id}
                 </Badge>
-                <Badge
-                  variant="outline"
-                  className={selectedDevice?.status === 'online' ? 'text-energy border-energy/30' : 'text-muted-foreground'}
-                >
-                  {selectedDevice?.status === 'online' ? 'Online' : 'Offline'}
-                </Badge>
+                {selectedDevice && (() => {
+                  const status = getDeviceStatus(selectedDevice);
+                  const config = STATUS_CONFIG[status];
+                  return (
+                    <Badge variant="outline" className={statusBadgeClass(status)}>
+                      <StatusIcon status={status} />
+                      {config.label}
+                    </Badge>
+                  );
+                })()}
               </div>
 
               <div className="space-y-2">
