@@ -83,7 +83,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
 
   return (
     <Card
-      className={cn('device-card cursor-pointer animate-fade-in', !device.isOnline && 'opacity-60')}
+      className={cn('device-card cursor-pointer animate-fade-in', connectionStatus === 'offline' && 'opacity-60')}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onSelect(device)}
