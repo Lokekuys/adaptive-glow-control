@@ -150,7 +150,7 @@ export function useDevices() {
 
             location: d.location ?? 'Unknown',
             brightness: d.brightness ?? 100,
-            lastSeen: d.lastSeen ? new Date(d.lastSeen) : new Date(),
+            lastSeen: d.lastSeen ? new Date(d.lastSeen) : new Date(0), // epoch = never seen
           }))
 
         setDevices(deviceList);
