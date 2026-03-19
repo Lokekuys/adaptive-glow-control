@@ -42,6 +42,18 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(device.name);
   const [showToggleWarning, setShowToggleWarning] = useState(false);
+  const [, setTick] = useState(0);
+
+  // Re-render every 5s to keep heartbeat status fresh
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const connectionStatus = computeConnectionStatus(device.lastSeen);
+  const statusConfig = STATUS_CONFIG[connectionStatus];
+  const lastSeenText = formatLastSeen(device.lastSeen);
+  const isDeviceOnline = connectionStatus === 'connected';
 
   const handleToggle = () => {
     if (device.controlMode === 'smart' || device.controlMode === 'scheduled') {
