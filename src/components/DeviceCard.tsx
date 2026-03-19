@@ -8,7 +8,6 @@ import { Switch } from '@/components/ui/switch';
 import { StatusIndicator } from './StatusIndicator';
 import { PowerIndicator } from './PowerIndicator';
 import { computeConnectionStatus, formatLastSeen, STATUS_CONFIG } from '@/lib/deviceStatus';
-import { useState, useEffect } from 'react';
 import {
   OccupancyDisplay,
   LightLevelDisplay,
