@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings, ChevronRight, Wifi, WifiOff, AlertTriangle, Pencil, Hand, Calendar, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SmartPlug } from '@/types/device';
