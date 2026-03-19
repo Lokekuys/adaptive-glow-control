@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, ChevronRight, Wifi, WifiOff, Pencil, Hand, Calendar, Brain } from 'lucide-react';
+import { Settings, ChevronRight, Wifi, WifiOff, AlertTriangle, Pencil, Hand, Calendar, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SmartPlug } from '@/types/device';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { StatusIndicator } from './StatusIndicator';
 import { PowerIndicator } from './PowerIndicator';
+import { computeConnectionStatus, formatLastSeen, STATUS_CONFIG } from '@/lib/deviceStatus';
+import { useState, useEffect } from 'react';
 import {
   OccupancyDisplay,
   LightLevelDisplay,
