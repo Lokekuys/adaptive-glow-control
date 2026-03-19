@@ -224,33 +224,39 @@ export function useDevices() {
         });
       }
 
-      // Smart mode: start auto-OFF countdown when vacant
-      const shouldAutoOff =
-        isOn &&
-        auto.occupancyControlEnabled &&
-        sensorData.occupancy === "vacant";
-
-      if (shouldAutoOff && !vacancyTimers.current[id]) {
-        const delayMs = (auto.autoOffDelaySeconds ?? 300) * 1000;
-        const endsAt = Date.now() + delayMs;
-
-        setCountdowns((prev) => ({ ...prev, [id]: endsAt }));
-
-        vacancyTimers.current[id] = setTimeout(() => {
+      // Smart mode: auto-OFF when vacant
+      if (isOn && sensorData.occupancy === "vacant") {
+        if (!auto.occupancyControlEnabled) {
+          // Delay NOT enabled — turn off immediately
           update(ref(rtdb, `devices/${id}`), {
             isOn: false,
             relayState: false,
             lastSeen: new Date().toISOString(),
             turnedOnAt: null,
           });
-          delete vacancyTimers.current[id];
-          setCountdowns((prev) => {
-            const next = { ...prev };
-            delete next[id];
-            return next;
-          });
-        }, delayMs);
-      } else if (!shouldAutoOff && vacancyTimers.current[id]) {
+        } else if (!vacancyTimers.current[id]) {
+          // Delay enabled — start countdown timer
+          const delayMs = (auto.autoOffDelaySeconds ?? 300) * 1000;
+          const endsAt = Date.now() + delayMs;
+
+          setCountdowns((prev) => ({ ...prev, [id]: endsAt }));
+
+          vacancyTimers.current[id] = setTimeout(() => {
+            update(ref(rtdb, `devices/${id}`), {
+              isOn: false,
+              relayState: false,
+              lastSeen: new Date().toISOString(),
+              turnedOnAt: null,
+            });
+            delete vacancyTimers.current[id];
+            setCountdowns((prev) => {
+              const next = { ...prev };
+              delete next[id];
+              return next;
+            });
+          }, delayMs);
+        }
+      } else if (vacancyTimers.current[id]) {
         // Cancel timer (occupied again or turned off)
         clearTimeout(vacancyTimers.current[id]);
         delete vacancyTimers.current[id];
