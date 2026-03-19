@@ -170,7 +170,7 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
             <Switch
               checked={device.isOn}
               onCheckedChange={handleToggle}
-              disabled={!device.isOnline}
+              disabled={connectionStatus === 'offline'}
             />
             <span className="text-sm text-muted-foreground">{device.isOn ? 'On' : 'Off'}</span>
           </div>
