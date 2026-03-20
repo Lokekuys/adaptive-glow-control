@@ -6,8 +6,12 @@ import {
   Hand,
   Calendar,
   Brain,
+  Wifi,
+  WifiOff,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { computeConnectionStatus, formatLastSeen, STATUS_CONFIG } from "@/lib/deviceStatus";
 import { SmartPlug, AutomationSettings, ScheduleEntry, ControlMode } from "@/types/device";
 import { Button } from "@/components/ui/button";
 import { ScheduleEditor } from "./ScheduleEditor";

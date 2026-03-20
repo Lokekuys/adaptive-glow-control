@@ -56,6 +56,11 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
   const isDeviceOnline = connectionStatus === 'connected';
 
   const handleToggle = () => {
+    if (connectionStatus === 'offline') {
+      const { toast } = await import('@/hooks/use-toast').then(m => ({ toast: m.toast }));
+      toast({ title: 'Device offline', description: 'Cannot control device while offline', variant: 'destructive' });
+      return;
+    }
     if (device.controlMode === 'smart' || device.controlMode === 'scheduled') {
       setShowToggleWarning(true);
     } else {
