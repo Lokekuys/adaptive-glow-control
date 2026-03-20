@@ -100,7 +100,7 @@ export function AddDeviceScanner() {
 
   // Filter: only show devices that are "connected" (lastSeen < 10s)
   const onlineDevices = unclaimed.filter(
-    (d) => computeConnectionStatus(d.lastSeen) === 'connected'
+    (d) => computeConnectionStatus(d.lastSeen) !== 'offline'
   );
 
   const getDeviceStatus = (device: UnclaimedDevice): ConnectionStatus => {

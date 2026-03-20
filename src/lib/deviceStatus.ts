@@ -30,11 +30,13 @@ export function computeConnectionStatus(lastSeen: Date | string | number | undef
 export function formatLastSeen(lastSeen: Date | string | number | undefined): string {
   if (!lastSeen) return 'Never';
 
-  const lastSeenMs = typeof lastSeen === 'number'
+  const raw = typeof lastSeen === 'number'
     ? lastSeen
     : new Date(lastSeen).getTime();
 
-  if (isNaN(lastSeenMs)) return 'Unknown';
+  if (isNaN(raw)) return 'Unknown';
+
+  const lastSeenMs = normalizeToMs(raw);
 
   const diffSec = Math.floor((Date.now() - lastSeenMs) / 1000);
 
