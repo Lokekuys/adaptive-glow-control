@@ -305,7 +305,7 @@ export function DeviceDetailPanel({
           {device.classification?.pwmCompatible && (
             <>
               <Separator />
-              <div className={cn("space-y-3 p-4 rounded-xl border", !device.isOn && "opacity-60")}>
+              <div className={cn("space-y-3 p-4 rounded-xl border", (!device.isOn || isOffline) && "opacity-60")}>
                 <div className="flex items-center justify-between">
                   <Label className="font-medium">Brightness</Label>
                   <span className="text-sm font-mono text-muted-foreground">{device.brightness ?? 0}%</span>
@@ -316,6 +316,7 @@ export function DeviceDetailPanel({
                   max={100}
                   min={0}
                   step={1}
+                  disabled={isOffline}
                 />
               </div>
             </>
