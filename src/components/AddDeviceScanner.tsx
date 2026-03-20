@@ -75,10 +75,12 @@ export function AddDeviceScanner() {
       for (const [id, val] of Object.entries(data)) {
         const d = val as any;
         if (d.type === 'smartPlug' && d.isClaimed !== true) {
+          const ls = Number(d.lastSeen || 0);
+          console.log('[AddDevice]', id, 'lastSeen:', ls, 'status:', computeConnectionStatus(ls));
           list.push({
             id,
             name: d.name || id,
-            lastSeen: d.lastSeen,
+            lastSeen: ls,
             type: d.type,
           });
         }
