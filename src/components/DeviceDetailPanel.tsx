@@ -239,7 +239,7 @@ export function DeviceDetailPanel({
 
           {/* Smart Mode Settings (shown in smart mode) */}
           {controlMode === 'smart' && (
-            <div className="space-y-4">
+            <div className={cn("space-y-4", isOffline && "opacity-50 pointer-events-none")}>
               <Label className="font-medium">Occupancy Automation</Label>
 
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
@@ -247,6 +247,7 @@ export function DeviceDetailPanel({
                 <Switch
                   checked={automationSettings.occupancyControlEnabled}
                   onCheckedChange={(checked) => onAutomationChange(device.id, { occupancyControlEnabled: checked })}
+                  disabled={isOffline}
                 />
               </div>
 
