@@ -144,7 +144,22 @@ export function DeviceDetailPanel({
                 <SheetDescription className="text-left">{device.location}</SheetDescription>
               </div>
             </div>
-            <StatusIndicator status={device.isOnline ? "online" : "offline"} label={device.isOnline ? "Connected" : "Offline"} />
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-2">
+                {connectionStatus === 'connected' && <Wifi className="w-4 h-4 text-energy" />}
+                {connectionStatus === 'idle' && <AlertTriangle className="w-4 h-4 text-warning" />}
+                {connectionStatus === 'offline' && <WifiOff className="w-4 h-4 text-muted-foreground" />}
+                <StatusIndicator
+                  status={statusConfig.indicatorStatus}
+                  label={statusConfig.label}
+                  size="sm"
+                  pulse={connectionStatus === 'connected'}
+                />
+              </div>
+              {connectionStatus !== 'connected' && (
+                <span className="text-[10px] text-muted-foreground font-mono">{lastSeenText}</span>
+              )}
+            </div>
           </div>
         </SheetHeader>
 
