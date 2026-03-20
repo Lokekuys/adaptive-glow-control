@@ -2,35 +2,35 @@
 
 ## Problem
 
-The ESP32 writes `lastSeen` as **UNIX seconds** (e.g., `1773906971`), but `computeConnectionStatus()` compares it directly against `Date.now()` which returns **milliseconds**. This produces a diff of ~1.7 trillion, making every device appear "offline".
+Two issues:
+1. **Panel uses `device.isOnline`** (static flag) on line 138 of `DeviceDetailPanel.tsx` instead of computing status from `lastSeen` — causing card/panel status mismatch.
+2. **Controls are not disabled when offline** — users can toggle, change modes, and adjust brightness on unreachable devices.
 
 ## Plan
 
-### 1. Fix `src/lib/deviceStatus.ts` — Detect seconds vs milliseconds
+### 1. Fix DeviceDetailPanel status display (line 138)
 
-Update `computeConnectionStatus()` and `formatLastSeen()` to auto-detect whether `lastSeen` is in seconds or milliseconds. If the value is less than a reasonable threshold (e.g., `1e12`), multiply by 1000 to normalize to milliseconds. Also widen the connected threshold to 15 seconds to accommodate ESP32 heartbeat intervals.
+Import `computeConnectionStatus`, `formatLastSeen`, and `STATUS_CONFIG` from `@/lib/deviceStatus`. Compute `connectionStatus` from `device.lastSeen` and replace the static `device.isOnline` check with the computed status. Add matching icons (Wifi/AlertTriangle/WifiOff) and "last seen" text — same rendering logic as `DeviceCard`.
 
-```
-- const CONNECTED_THRESHOLD = 10_000;
-+ const CONNECTED_THRESHOLD = 15_000;  // < 15s (ESP sends every ~5-10s)
-```
+### 2. Disable all controls when offline
 
-Add a helper to normalize timestamps:
-```typescript
-function normalizeToMs(ts: number): number {
-  return ts < 1e12 ? ts * 1000 : ts;
-}
-```
+Derive `const isOffline = connectionStatus === 'offline'` and apply `disabled={isOffline}` to:
+- Power toggle switch (line 154–158) — already uses `!device.isOnline`, change to `isOffline`
+- Control mode buttons (lines 171–184)
+- Auto-off vacancy switch (line 210–212)
+- Auto-off delay inputs (lines 223–256)
+- Brightness slider (lines 275–281)
+- Schedule editor (line 196)
 
-Apply this normalization in both `computeConnectionStatus` and `formatLastSeen`.
+### 3. Add offline overlay/banner
 
-### 2. Fix `src/components/AddDeviceScanner.tsx` — Show connected AND idle devices
+When `isOffline`, show a warning banner at the top of the panel content: "⚠ Device is offline — controls disabled" with muted styling.
 
-Change the scan filter from `=== 'connected'` to `!== 'offline'` so both connected and idle devices appear in results.
+### 4. Add toast on blocked actions (DeviceCard)
 
-Add a debug `console.log` in the Firebase listener for troubleshooting.
+In `DeviceCard.tsx`, update `handleToggle` to check `connectionStatus` before proceeding. If offline, show a toast ("Cannot control device while offline") and return early. Import `toast` from `@/hooks/use-toast`.
 
 ### Files Changed
-- `src/lib/deviceStatus.ts` — normalize seconds→ms, widen connected threshold to 15s
-- `src/components/AddDeviceScanner.tsx` — filter `!== 'offline'` instead of `=== 'connected'`
+- **`src/components/DeviceDetailPanel.tsx`** — import heartbeat utils, compute status from `lastSeen`, replace `device.isOnline` references, disable all controls when offline, add offline banner
+- **`src/components/DeviceCard.tsx`** — add offline guard with toast in `handleToggle`
 
