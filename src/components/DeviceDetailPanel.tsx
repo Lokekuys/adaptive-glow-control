@@ -164,8 +164,16 @@ export function DeviceDetailPanel({
         </SheetHeader>
 
         <div className="space-y-6">
+          {/* Offline Banner */}
+          {isOffline && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+              <WifiOff className="w-4 h-4 shrink-0" />
+              <span>Device is offline — controls disabled</span>
+            </div>
+          )}
+
           {/* Power Control */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted">
+          <div className={cn("flex items-center justify-between p-4 rounded-xl bg-muted", isOffline && "opacity-50")}>
             <div className="flex items-center gap-3">
               <Power className="w-5 h-5 text-primary" />
               <div>
@@ -178,7 +186,7 @@ export function DeviceDetailPanel({
             <Switch
               checked={device.isOn}
               onCheckedChange={handleToggle}
-              disabled={!device.isOnline}
+              disabled={isOffline}
             />
           </div>
 
