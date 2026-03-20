@@ -75,10 +75,12 @@ export function AddDeviceScanner() {
       for (const [id, val] of Object.entries(data)) {
         const d = val as any;
         if (d.type === 'smartPlug' && d.isClaimed !== true) {
+          const ls = Number(d.lastSeen || 0);
+          console.log('[AddDevice]', id, 'lastSeen:', ls, 'status:', computeConnectionStatus(ls));
           list.push({
             id,
             name: d.name || id,
-            lastSeen: d.lastSeen,
+            lastSeen: ls,
             type: d.type,
           });
         }
@@ -98,7 +100,7 @@ export function AddDeviceScanner() {
 
   // Filter: only show devices that are "connected" (lastSeen < 10s)
   const onlineDevices = unclaimed.filter(
-    (d) => computeConnectionStatus(d.lastSeen) === 'connected'
+    (d) => computeConnectionStatus(d.lastSeen) !== 'offline'
   );
 
   const getDeviceStatus = (device: UnclaimedDevice): ConnectionStatus => {

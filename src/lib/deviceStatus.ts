@@ -2,18 +2,24 @@
 
 export type ConnectionStatus = 'connected' | 'idle' | 'offline';
 
-const CONNECTED_THRESHOLD = 10_000;  // < 10s
-const IDLE_THRESHOLD = 30_000;       // 10–30s
+const CONNECTED_THRESHOLD = 15_000;  // < 15s (ESP sends every ~5-10s)
+const IDLE_THRESHOLD = 30_000;       // 15–30s
+
+/** Normalize a timestamp to milliseconds (auto-detect seconds vs ms) */
+function normalizeToMs(ts: number): number {
+  return ts < 1e12 ? ts * 1000 : ts;
+}
 
 export function computeConnectionStatus(lastSeen: Date | string | number | undefined): ConnectionStatus {
   if (!lastSeen) return 'offline';
 
-  const lastSeenMs = typeof lastSeen === 'number'
+  const raw = typeof lastSeen === 'number'
     ? lastSeen
     : new Date(lastSeen).getTime();
 
-  if (isNaN(lastSeenMs)) return 'offline';
+  if (isNaN(raw)) return 'offline';
 
+  const lastSeenMs = normalizeToMs(raw);
   const diff = Date.now() - lastSeenMs;
 
   if (diff < CONNECTED_THRESHOLD) return 'connected';
@@ -24,11 +30,13 @@ export function computeConnectionStatus(lastSeen: Date | string | number | undef
 export function formatLastSeen(lastSeen: Date | string | number | undefined): string {
   if (!lastSeen) return 'Never';
 
-  const lastSeenMs = typeof lastSeen === 'number'
+  const raw = typeof lastSeen === 'number'
     ? lastSeen
     : new Date(lastSeen).getTime();
 
-  if (isNaN(lastSeenMs)) return 'Unknown';
+  if (isNaN(raw)) return 'Unknown';
+
+  const lastSeenMs = normalizeToMs(raw);
 
   const diffSec = Math.floor((Date.now() - lastSeenMs) / 1000);
 
