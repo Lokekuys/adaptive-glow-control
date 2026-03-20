@@ -6,8 +6,12 @@ import {
   Hand,
   Calendar,
   Brain,
+  Wifi,
+  WifiOff,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { computeConnectionStatus, formatLastSeen, STATUS_CONFIG } from "@/lib/deviceStatus";
 import { SmartPlug, AutomationSettings, ScheduleEntry, ControlMode } from "@/types/device";
 import { Button } from "@/components/ui/button";
 import { ScheduleEditor } from "./ScheduleEditor";
@@ -82,6 +86,11 @@ export function DeviceDetailPanel({
 
   if (!device) return null;
 
+  const connectionStatus = computeConnectionStatus(device.lastSeen);
+  const statusConfig = STATUS_CONFIG[connectionStatus];
+  const lastSeenText = formatLastSeen(device.lastSeen);
+  const isOffline = connectionStatus === 'offline';
+
   const sensorData = device.sensorData ?? { occupancy: "vacant", lightLevel: 0 };
   const powerData = device.powerData ?? { currentWatts: 0, todayKwh: 0, isAbnormal: false };
   const automationSettings = device.automationSettings ?? {
@@ -135,13 +144,36 @@ export function DeviceDetailPanel({
                 <SheetDescription className="text-left">{device.location}</SheetDescription>
               </div>
             </div>
-            <StatusIndicator status={device.isOnline ? "online" : "offline"} label={device.isOnline ? "Connected" : "Offline"} />
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-2">
+                {connectionStatus === 'connected' && <Wifi className="w-4 h-4 text-energy" />}
+                {connectionStatus === 'idle' && <AlertTriangle className="w-4 h-4 text-warning" />}
+                {connectionStatus === 'offline' && <WifiOff className="w-4 h-4 text-muted-foreground" />}
+                <StatusIndicator
+                  status={statusConfig.indicatorStatus}
+                  label={statusConfig.label}
+                  size="sm"
+                  pulse={connectionStatus === 'connected'}
+                />
+              </div>
+              {connectionStatus !== 'connected' && (
+                <span className="text-[10px] text-muted-foreground font-mono">{lastSeenText}</span>
+              )}
+            </div>
           </div>
         </SheetHeader>
 
         <div className="space-y-6">
+          {/* Offline Banner */}
+          {isOffline && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+              <WifiOff className="w-4 h-4 shrink-0" />
+              <span>Device is offline — controls disabled</span>
+            </div>
+          )}
+
           {/* Power Control */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted">
+          <div className={cn("flex items-center justify-between p-4 rounded-xl bg-muted", isOffline && "opacity-50")}>
             <div className="flex items-center gap-3">
               <Power className="w-5 h-5 text-primary" />
               <div>
@@ -154,14 +186,14 @@ export function DeviceDetailPanel({
             <Switch
               checked={device.isOn}
               onCheckedChange={handleToggle}
-              disabled={!device.isOnline}
+              disabled={isOffline}
             />
           </div>
 
           <Separator />
 
           {/* Control Mode Selector */}
-          <div className="space-y-3">
+          <div className={cn("space-y-3", isOffline && "opacity-50 pointer-events-none")}>
             <Label className="font-medium">Control Mode</Label>
             <div className="grid grid-cols-3 gap-2">
               {CONTROL_MODES.map((mode) => {
@@ -171,11 +203,13 @@ export function DeviceDetailPanel({
                   <button
                     key={mode.value}
                     onClick={() => onControlModeChange(device.id, mode.value)}
+                    disabled={isOffline}
                     className={cn(
                       "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center",
                       isActive
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-transparent bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+                        : "border-transparent bg-muted text-muted-foreground hover:bg-accent hover:text-foreground",
+                      isOffline && "cursor-not-allowed"
                     )}
                   >
                     <Icon className="w-5 h-5" />
@@ -184,6 +218,10 @@ export function DeviceDetailPanel({
                 );
               })}
             </div>
+            <p className="text-xs text-muted-foreground">
+              {CONTROL_MODES.find((m) => m.value === controlMode)?.description}
+            </p>
+          </div>
             <p className="text-xs text-muted-foreground">
               {CONTROL_MODES.find((m) => m.value === controlMode)?.description}
             </p>
@@ -201,7 +239,7 @@ export function DeviceDetailPanel({
 
           {/* Smart Mode Settings (shown in smart mode) */}
           {controlMode === 'smart' && (
-            <div className="space-y-4">
+            <div className={cn("space-y-4", isOffline && "opacity-50 pointer-events-none")}>
               <Label className="font-medium">Occupancy Automation</Label>
 
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
@@ -209,6 +247,7 @@ export function DeviceDetailPanel({
                 <Switch
                   checked={automationSettings.occupancyControlEnabled}
                   onCheckedChange={(checked) => onAutomationChange(device.id, { occupancyControlEnabled: checked })}
+                  disabled={isOffline}
                 />
               </div>
 
@@ -267,7 +306,7 @@ export function DeviceDetailPanel({
           {device.classification?.pwmCompatible && (
             <>
               <Separator />
-              <div className={cn("space-y-3 p-4 rounded-xl border", !device.isOn && "opacity-60")}>
+              <div className={cn("space-y-3 p-4 rounded-xl border", (!device.isOn || isOffline) && "opacity-60")}>
                 <div className="flex items-center justify-between">
                   <Label className="font-medium">Brightness</Label>
                   <span className="text-sm font-mono text-muted-foreground">{device.brightness ?? 0}%</span>
@@ -278,6 +317,7 @@ export function DeviceDetailPanel({
                   max={100}
                   min={0}
                   step={1}
+                  disabled={isOffline}
                 />
               </div>
             </>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Settings, ChevronRight, Wifi, WifiOff, AlertTriangle, Pencil, Hand, Calendar, Brain } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { SmartPlug } from '@/types/device';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,6 +57,10 @@ export function DeviceCard({ device, onToggle, onSelect, countdownEndsAt }: Devi
   const isDeviceOnline = connectionStatus === 'connected';
 
   const handleToggle = () => {
+    if (connectionStatus === 'offline') {
+      toast({ title: 'Device offline', description: 'Cannot control device while offline', variant: 'destructive' });
+      return;
+    }
     if (device.controlMode === 'smart' || device.controlMode === 'scheduled') {
       setShowToggleWarning(true);
     } else {
