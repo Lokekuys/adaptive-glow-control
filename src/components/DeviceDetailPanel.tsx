@@ -193,7 +193,7 @@ export function DeviceDetailPanel({
           <Separator />
 
           {/* Control Mode Selector */}
-          <div className="space-y-3">
+          <div className={cn("space-y-3", isOffline && "opacity-50 pointer-events-none")}>
             <Label className="font-medium">Control Mode</Label>
             <div className="grid grid-cols-3 gap-2">
               {CONTROL_MODES.map((mode) => {
@@ -203,11 +203,13 @@ export function DeviceDetailPanel({
                   <button
                     key={mode.value}
                     onClick={() => onControlModeChange(device.id, mode.value)}
+                    disabled={isOffline}
                     className={cn(
                       "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center",
                       isActive
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-transparent bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+                        : "border-transparent bg-muted text-muted-foreground hover:bg-accent hover:text-foreground",
+                      isOffline && "cursor-not-allowed"
                     )}
                   >
                     <Icon className="w-5 h-5" />
@@ -216,6 +218,10 @@ export function DeviceDetailPanel({
                 );
               })}
             </div>
+            <p className="text-xs text-muted-foreground">
+              {CONTROL_MODES.find((m) => m.value === controlMode)?.description}
+            </p>
+          </div>
             <p className="text-xs text-muted-foreground">
               {CONTROL_MODES.find((m) => m.value === controlMode)?.description}
             </p>
