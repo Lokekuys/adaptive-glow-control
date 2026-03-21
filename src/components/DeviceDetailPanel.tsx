@@ -222,9 +222,6 @@ export function DeviceDetailPanel({
               {CONTROL_MODES.find((m) => m.value === controlMode)?.description}
             </p>
           </div>
-            <p className="text-xs text-muted-foreground">
-              {CONTROL_MODES.find((m) => m.value === controlMode)?.description}
-            </p>
           </div>
 
           {/* Schedule Editor (shown in scheduled mode) */}
