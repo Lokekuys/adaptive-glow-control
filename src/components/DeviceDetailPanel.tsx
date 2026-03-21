@@ -223,7 +223,6 @@ export function DeviceDetailPanel({
               {CONTROL_MODES.find((m) => m.value === controlMode)?.description}
             </p>
           </div>
-          </div>
 
           {/* Schedule Editor (shown in scheduled mode) */}
           {controlMode === 'scheduled' && (
