@@ -351,12 +351,10 @@ export function useDevices() {
         turnedOnAt: newIsOn ? new Date().toISOString() : null,
       };
 
-      // If in scheduled mode, switch to manual mode so the schedule doesn't fight back
-      if (device.controlMode === 'scheduled') {
+      // If in scheduled or smart mode, switch to manual so automation doesn't fight back
+      if (device.controlMode === 'scheduled' || device.controlMode === 'smart') {
         updates.controlMode = 'manual';
       }
-
-      // In smart mode, allow manual toggle without leaving smart mode
       // Cancel any pending vacancy timer for this device
       if (device.controlMode === 'smart' && vacancyTimers.current[deviceId]) {
         clearTimeout(vacancyTimers.current[deviceId]);
